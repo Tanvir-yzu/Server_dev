@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevOps Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-blue-600 text-white p-3 sm:p-4">
+        <div class="container mx-auto flex flex-col sm:flex-row justify-between items-center">
+            <h1 class="text-lg sm:text-xl font-bold mb-2 sm:mb-0">
+                <i class="fas fa-server mr-2"></i>DevOps Dashboard
+            </h1>
+            <!-- Mobile menu button -->
+            <button class="sm:hidden block text-white focus:outline-none mb-2" onclick="toggleMobileMenu()">
+                <i class="fas fa-bars text-xl"></i>
+            </button>
+            <!-- Navigation links -->
+            <div id="mobile-menu" class="hidden sm:flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4 w-full sm:w-auto">
+                <a href="{% url 'profile' %}" class="hover:text-blue-200 text-center sm:text-left">
+                    <i class="fas fa-user mr-1"></i>Profile
+                </a>
+                <a href="{% url 'logout' %}" class="hover:text-blue-200 text-center sm:text-left">
+                    <i class="fas fa-sign-out-alt mr-1"></i>Logout
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8">
+        <!-- Welcome Section -->
+        <div class="mb-6 sm:mb-8">
+            <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-2 break-words">
+                Welcome back, {{ user.first_name|default:user.email }}!
+            </h2>
+            <p class="text-gray-600 text-sm sm:text-base">Manage your DevOps projects and deployments</p>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8">
+            <!-- Total Projects -->
+            <div class="bg-white rounded-lg shadow-md p-4 sm:p-6">
+                <div class="flex items-center">
+                    <div class="p-2 sm:p-3 rounded-full bg-blue-100 text-blue-600 flex-shrink-0">
+                        <i class="fas fa-project-diagram text-lg sm:text-2xl"></i>
+                    </div>
+                    <div class="ml-3 sm:ml-4 min-w-0 flex-1">
+                        <h3 class="text-sm sm:text-lg font-semibold text-gray-700 truncate">Total Projects</h3>
+                        <p class="text-2xl sm:text-3xl font-bold text-blue-600">{{ total_projects }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Deployed Projects -->
+            <div class="bg-white rounded-lg shadow-md p-4 sm:p-6">
+                <div class="flex items-center">
+                    <div class="p-2 sm:p-3 rounded-full bg-green-100 text-green-600 flex-shrink-0">
+                        <i class="fas fa-check-circle text-lg sm:text-2xl"></i>
+                    </div>
+                    <div class="ml-3 sm:ml-4 min-w-0 flex-1">
+                        <h3 class="text-sm sm:text-lg font-semibold text-gray-700 truncate">Deployed</h3>
+                        <p class="text-2xl sm:text-3xl font-bold text-green-600">{{ deployed_projects }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pending Projects -->
+            <div class="bg-white rounded-lg shadow-md p-4 sm:p-6">
+                <div class="flex items-center">
+                    <div class="p-2 sm:p-3 rounded-full bg-yellow-100 text-yellow-600 flex-shrink-0">
+                        <i class="fas fa-clock text-lg sm:text-2xl"></i>
+                    </div>
+                    <div class="ml-3 sm:ml-4 min-w-0 flex-1">
+                        <h3 class="text-sm sm:text-lg font-semibold text-gray-700 truncate">Pending</h3>
+                        <p class="text-2xl sm:text-3xl font-bold text-yellow-600">{{ pending_projects }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Failed Projects -->
+            <div class="bg-white rounded-lg shadow-md p-4 sm:p-6">
+                <div class="flex items-center">
+                    <div class="p-2 sm:p-3 rounded-full bg-red-100 text-red-600 flex-shrink-0">
+                        <i class="fas fa-exclamation-triangle text-lg sm:text-2xl"></i>
+                    </div>
+                    <div class="ml-3 sm:ml-4 min-w-0 flex-1">
+                        <h3 class="text-sm sm:text-lg font-semibold text-gray-700 truncate">Failed</h3>
+                        <p class="text-2xl sm:text-3xl font-bold text-red-600">{{ failed_projects }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 sm:mb-8">
+            <a href="{% url 'devops:project_create' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold transition duration-200 text-center">
+                <i class="fas fa-plus mr-2"></i>Create New Project
+            </a>
+            <a href="{% url 'devops:project_list' %}" class="bg-gray-600 hover:bg-gray-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold transition duration-200 text-center">
+                <i class="fas fa-list mr-2"></i>View All Projects
+            </a>
+        </div>
+
+        <!-- Recent Projects -->
+        <div class="bg-white rounded-lg shadow-md">
+            <div class="p-4 sm:p-6 border-b border-gray-200">
+                <h3 class="text-lg sm:text-xl font-semibold text-gray-800">
+                    <i class="fas fa-history mr-2"></i>Recent Projects
+                </h3>
+            </div>
+            <div class="p-4 sm:p-6">
+                {% if recent_projects %}
+                    <div class="space-y-3 sm:space-y-4">
+                        {% for project in recent_projects %}
+                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 border border-gray-200 rounded-lg hover:bg-gray-50 space-y-3 sm:space-y-0">
+                                <div class="flex items-center min-w-0 flex-1">
+                                    <div class="p-2 rounded-full bg-blue-100 text-blue-600 mr-3 sm:mr-4 flex-shrink-0">
+                                        <i class="fas fa-code-branch text-sm sm:text-base"></i>
+                                    </div>
+                                    <div class="min-w-0 flex-1">
+                                        <a href="{% url 'devops:project_detail' project.pk %}" class="font-semibold text-gray-800 hover:text-blue-600 text-sm sm:text-base truncate transition duration-200">{{ project.project_name }}</a>
+                                        <p class="text-xs sm:text-sm text-gray-600 truncate">{{ project.domain_name }}</p>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 flex-shrink-0">
+                                    <span class="px-2 sm:px-3 py-1 rounded-full text-xs font-medium w-full sm:w-auto text-center
+                                        {% if project.deployment_status == 'deployed' %}bg-green-100 text-green-800
+                                        {% elif project.deployment_status == 'pending' %}bg-yellow-100 text-yellow-800
+                                        {% elif project.deployment_status == 'failed' %}bg-red-100 text-red-800
+                                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                        {{ project.get_deployment_status_display }}
+                                    </span>
+                                    <div class="flex space-x-2 sm:space-x-4 w-full sm:w-auto">
+                                        <a href="{% url 'devops:server_code' project.pk %}" class="text-blue-600 hover:text-blue-800 text-xs sm:text-sm flex-1 sm:flex-none text-center sm:text-left">
+                                            <i class="fas fa-code mr-1 sm:mr-2"></i><span class="hidden sm:inline">View Server Code</span><span class="sm:hidden">Code</span>
+                                        </a>
+                                        <a href="{% url 'devops:project_detail' project.pk %}" class="text-blue-600 hover:text-blue-800 text-xs sm:text-sm flex-1 sm:flex-none text-center sm:text-left">
+                                            <i class="fas fa-eye mr-1"></i><span class="sm:hidden">View</span>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-6 sm:py-8">
+                        <i class="fas fa-folder-open text-3xl sm:text-4xl text-gray-400 mb-3 sm:mb-4"></i>
+                        <p class="text-gray-600 mb-3 sm:mb-4 text-sm sm:text-base">No projects yet</p>
+                        <a href="{% url 'devops:project_create' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 sm:px-6 py-2 rounded-lg font-semibold transition duration-200 text-sm sm:text-base">
+                            <i class="fas fa-plus mr-2"></i>Create Your First Project
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Menu Toggle Script -->
+    <script>
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const menu = document.getElementById('mobile-menu');
+            const button = event.target.closest('button');
+            
+            if (!button && !menu.contains(event.target)) {
+                menu.classList.add('hidden');
+            }
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            const menu = document.getElementById('mobile-menu');
+            if (window.innerWidth >= 640) { // sm breakpoint
+                menu.classList.remove('hidden');
+            } else {
+                menu.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>

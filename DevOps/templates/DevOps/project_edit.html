@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit {{ object.project_name }} - DevOps</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-blue-600 text-white p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-xl font-bold">
+                <i class="fas fa-server mr-2"></i>DevOps Dashboard
+            </h1>
+            <div class="space-x-4">
+                <a href="{% url 'devops:dashboard' %}" class="hover:text-blue-200">
+                    <i class="fas fa-home mr-1"></i>Dashboard
+                </a>
+                <a href="{% url 'devops:project_list' %}" class="hover:text-blue-200">
+                    <i class="fas fa-list mr-1"></i>Projects
+                </a>
+                <a href="{% url 'profile' %}" class="hover:text-blue-200">
+                    <i class="fas fa-user mr-1"></i>Profile
+                </a>
+                <a href="{% url 'logout' %}" class="hover:text-blue-200">
+                    <i class="fas fa-sign-out-alt mr-1"></i>Logout
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <h2 class="text-3xl font-bold text-gray-800">Edit Project</h2>
+            <p class="text-gray-600 mt-2">Update your project information</p>
+        </div>
+
+        <!-- Form -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                
+                <!-- Project Name -->
+                <div>
+                    <label for="{{ form.project_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Project Name <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.project_name }}
+                    {% if form.project_name.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.project_name.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- GitHub Username -->
+                <div>
+                    <label for="{{ form.github_username.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        GitHub Username <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.github_username }}
+                    {% if form.github_username.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.github_username.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Database Name -->
+                <div>
+                    <label for="{{ form.database_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Database Name <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.database_name }}
+                    {% if form.database_name.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.database_name.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Domain Name -->
+                <div>
+                    <label for="{{ form.domain_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Domain Name <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.domain_name }}
+                    {% if form.domain_name.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.domain_name.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- GitHub Repository Link -->
+                <div>
+                    <label for="{{ form.project_github_link.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        GitHub Repository Link <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.project_github_link }}
+                    {% if form.project_github_link.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.project_github_link.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Deployment Status -->
+                <div>
+                    <label for="{{ form.deployment_status.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Deployment Status
+                    </label>
+                    {{ form.deployment_status }}
+                    {% if form.deployment_status.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.deployment_status.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Project Details -->
+                <div>
+                    <label for="{{ form.project_details.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Project Details <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.project_details }}
+                    {% if form.project_details.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.project_details.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Form Actions -->
+                <div class="flex justify-between items-center pt-6">
+                    <a href="{% url 'devops:project_detail' object.pk %}" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg font-semibold transition duration-200">
+                        <i class="fas fa-arrow-left mr-2"></i>Cancel
+                    </a>
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold transition duration-200">
+                        <i class="fas fa-save mr-2"></i>Update Project
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

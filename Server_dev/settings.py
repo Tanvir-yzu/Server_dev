@@ -26,6 +26,14 @@ DEBUG = DEBUG
 
 ALLOWED_HOSTS = ALLOWED_HOSTS
 
+# Custom User Model
+AUTH_USER_MODEL = 'Auth.CustomUser'
+
+# Login / Logout redirects
+LOGIN_URL = 'login'  # Add this line to fix the login redirect
+LOGIN_REDIRECT_URL = 'devops:dashboard'  # Change to redirect to dashboard after login
+LOGOUT_REDIRECT_URL = 'login'
+
 
 # Application definition
 

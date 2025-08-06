@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create New Project - DevOps</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-blue-600 text-white p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-xl font-bold">
+                <i class="fas fa-server mr-2"></i>DevOps Dashboard
+            </h1>
+            <div class="space-x-4">
+                <a href="{% url 'devops:dashboard' %}" class="hover:text-blue-200">
+                    <i class="fas fa-home mr-1"></i>Dashboard
+                </a>
+                <a href="{% url 'devops:project_list' %}" class="hover:text-blue-200">
+                    <i class="fas fa-list mr-1"></i>Projects
+                </a>
+                <a href="{% url 'profile' %}" class="hover:text-blue-200">
+                    <i class="fas fa-user mr-1"></i>Profile
+                </a>
+                <a href="{% url 'logout' %}" class="hover:text-blue-200">
+                    <i class="fas fa-sign-out-alt mr-1"></i>Logout
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <h2 class="text-3xl font-bold text-gray-800">Create New Project</h2>
+            <p class="text-gray-600 mt-2">Set up a new DevOps project for deployment</p>
+        </div>
+
+        <!-- Messages -->
+        {% if messages %}
+            <div class="mb-6">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} p-4 mb-4 rounded-lg {% if message.tags == 'error' %}bg-red-100 border border-red-400 text-red-700{% elif message.tags == 'success' %}bg-green-100 border border-green-400 text-green-700{% elif message.tags == 'warning' %}bg-yellow-100 border border-yellow-400 text-yellow-700{% else %}bg-blue-100 border border-blue-400 text-blue-700{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- Form -->
+        <div class="bg-white rounded-lg shadow-md p-6 max-w-4xl mx-auto">
+            <form method="post" class="space-y-6" id="projectForm">
+                {% csrf_token %}
+                
+                <!-- Project Name -->
+                <div>
+                    <label for="{{ form.project_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-project-diagram mr-2"></i>Project Name <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.project_name }}
+                    {% if form.project_name.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.project_name.errors %}
+                                <p><i class="fas fa-exclamation-circle mr-1"></i>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <p class="mt-1 text-xs text-gray-500">Choose a descriptive name for your project</p>
+                </div>
+
+                <!-- GitHub Username -->
+                <div>
+                    <label for="{{ form.github_username.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fab fa-github mr-2"></i>GitHub Username <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.github_username }}
+                    {% if form.github_username.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.github_username.errors %}
+                                <p><i class="fas fa-exclamation-circle mr-1"></i>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <p class="mt-1 text-xs text-gray-500">Your GitHub username (must match the repository owner)</p>
+                </div>
+
+                <!-- GitHub Repository Link -->
+                <div>
+                    <label for="{{ form.project_github_link.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-link mr-2"></i>GitHub Repository Link <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.project_github_link }}
+                    {% if form.project_github_link.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.project_github_link.errors %}
+                                <p><i class="fas fa-exclamation-circle mr-1"></i>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <p class="mt-1 text-xs text-gray-500">Full URL to your GitHub repository (e.g., https://github.com/username/repository)</p>
+                </div>
+
+                <!-- Domain and Database Row -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Domain Name -->
+                    <div>
+                        <label for="{{ form.domain_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-globe mr-2"></i>Domain Name <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.domain_name }}
+                        {% if form.domain_name.errors %}
+                            <div class="mt-1 text-sm text-red-600">
+                                {% for error in form.domain_name.errors %}
+                                    <p><i class="fas fa-exclamation-circle mr-1"></i>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <p class="mt-1 text-xs text-gray-500">Domain where your project will be deployed</p>
+                    </div>
+
+                    <!-- Database Name -->
+                    <div>
+                        <label for="{{ form.database_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-database mr-2"></i>Database Name <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.database_name }}
+                        {% if form.database_name.errors %}
+                            <div class="mt-1 text-sm text-red-600">
+                                {% for error in form.database_name.errors %}
+                                    <p><i class="fas fa-exclamation-circle mr-1"></i>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <p class="mt-1 text-xs text-gray-500">Database name for your project (letters, numbers, underscores only)</p>
+                    </div>
+                </div>
+
+                <!-- Project Details -->
+                <div>
+                    <label for="{{ form.project_details.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-file-alt mr-2"></i>Project Details <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.project_details }}
+                    {% if form.project_details.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.project_details.errors %}
+                                <p><i class="fas fa-exclamation-circle mr-1"></i>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <p class="mt-1 text-xs text-gray-500">Describe your project, its purpose, and any special requirements</p>
+                    <div class="mt-2 text-xs text-gray-400" id="charCount">0 characters</div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="flex justify-between items-center pt-6 border-t border-gray-200">
+                    <a href="{% url 'devops:dashboard' %}" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold transition duration-200">
+                        <i class="fas fa-arrow-left mr-2"></i>Cancel
+                    </a>
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition duration-200" id="submitBtn">
+                        <i class="fas fa-plus mr-2"></i>Create Project
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Help Section -->
+        <div class="bg-blue-50 rounded-lg p-6 mt-8 max-w-4xl mx-auto">
+            <h3 class="text-lg font-semibold text-blue-800 mb-4">
+                <i class="fas fa-info-circle mr-2"></i>Project Creation Guidelines
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-blue-700">
+                <div>
+                    <h4 class="font-medium mb-2">GitHub Requirements:</h4>
+                    <ul class="space-y-1 list-disc list-inside">
+                        <li>Repository must be public or accessible</li>
+                        <li>Username must match repository owner</li>
+                        <li>Repository should contain deployable code</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-medium mb-2">Naming Conventions:</h4>
+                    <ul class="space-y-1 list-disc list-inside">
+                        <li>Project names should be descriptive</li>
+                        <li>Database names: letters, numbers, underscores only</li>
+                        <li>Domain names must be valid format</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript for enhanced UX -->
+    <script>
+        // Character counter for project details
+        const projectDetails = document.getElementById('{{ form.project_details.id_for_label }}');
+        const charCount = document.getElementById('charCount');
+        
+        if (projectDetails && charCount) {
+            projectDetails.addEventListener('input', function() {
+                const count = this.value.length;
+                charCount.textContent = `${count} characters`;
+                
+                if (count > 500) {
+                    charCount.classList.add('text-yellow-600');
+                    charCount.classList.remove('text-gray-400');
+                } else {
+                    charCount.classList.add('text-gray-400');
+                    charCount.classList.remove('text-yellow-600');
+                }
+            });
+        }
+
+        // Auto-generate database name from project name
+        const projectName = document.getElementById('{{ form.project_name.id_for_label }}');
+        const databaseName = document.getElementById('{{ form.database_name.id_for_label }}');
+        
+        if (projectName && databaseName) {
+            projectName.addEventListener('input', function() {
+                if (!databaseName.value) {
+                    // Generate database name from project name
+                    let dbName = this.value
+                        .toLowerCase()
+                        .replace(/[^a-z0-9]/g, '_')
+                        .replace(/_+/g, '_')
+                        .replace(/^_|_$/g, '');
+                    
+                    if (dbName && !dbName.match(/^[0-9]/)) {
+                        databaseName.value = dbName;
+                    }
+                }
+            });
+        }
+
+        // GitHub link validation
+        const githubUsername = document.getElementById('{{ form.github_username.id_for_label }}');
+        const githubLink = document.getElementById('{{ form.project_github_link.id_for_label }}');
+        
+        if (githubUsername && githubLink) {
+            githubUsername.addEventListener('input', function() {
+                const username = this.value;
+                if (username && !githubLink.value) {
+                    githubLink.placeholder = `https://github.com/${username}/repository-name`;
+                }
+            });
+        }
+
+        // Form submission loading state
+        const form = document.getElementById('projectForm');
+        const submitBtn = document.getElementById('submitBtn');
+        
+        if (form && submitBtn) {
+            form.addEventListener('submit', function() {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Creating Project...';
+            });
+        }
+
+        // Real-time validation feedback
+        const inputs = form.querySelectorAll('input, textarea, select');
+        inputs.forEach(input => {
+            input.addEventListener('blur', function() {
+                if (this.value.trim()) {
+                    this.classList.add('border-green-300');
+                    this.classList.remove('border-gray-300', 'border-red-300');
+                } else if (this.hasAttribute('required')) {
+                    this.classList.add('border-red-300');
+                    this.classList.remove('border-gray-300', 'border-green-300');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

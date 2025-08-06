@@ -7,6 +7,11 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('auth/', include('Auth.urls')),
+    #path('devops/', include('DevOps.urls')),
+    path('', include('DevOps.urls')),
+
+
 ]
 # serve media files in development environment --------------------------------
 if settings.DEBUG:

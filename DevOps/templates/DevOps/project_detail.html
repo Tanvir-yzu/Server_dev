@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ project.project_name }} - DevOps</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-blue-600 text-white p-3 sm:p-4">
+        <div class="container mx-auto flex flex-col sm:flex-row justify-between items-center">
+            <h1 class="text-lg sm:text-xl font-bold mb-2 sm:mb-0">
+                <i class="fas fa-server mr-2"></i>DevOps Dashboard
+            </h1>
+            <!-- Mobile menu button -->
+            <button class="sm:hidden block text-white focus:outline-none mb-2" onclick="toggleMobileMenu()">
+                <i class="fas fa-bars text-xl"></i>
+            </button>
+            <!-- Navigation links -->
+            <div id="mobile-menu" class="hidden sm:flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4 w-full sm:w-auto">
+                <a href="{% url 'devops:dashboard' %}" class="hover:text-blue-200 text-center sm:text-left">
+                    <i class="fas fa-home mr-1"></i>Dashboard
+                </a>
+                <a href="{% url 'devops:project_list' %}" class="hover:text-blue-200 text-center sm:text-left">
+                    <i class="fas fa-list mr-1"></i>Projects
+                </a>
+                <a href="{% url 'profile' %}" class="hover:text-blue-200 text-center sm:text-left">
+                    <i class="fas fa-user mr-1"></i>Profile
+                </a>
+                <a href="{% url 'logout' %}" class="hover:text-blue-200 text-center sm:text-left">
+                    <i class="fas fa-sign-out-alt mr-1"></i>Logout
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8">
+        <!-- Header -->
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 space-y-4 sm:space-y-0">
+            <div class="w-full sm:w-auto">
+                <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 break-words">{{ project.project_name }}</h2>
+                <p class="text-gray-600 mt-2">Project Details</p>
+            </div>
+            <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
+                <a href="{% url 'devops:server_code' project.pk %}" class="bg-blue-600 hover:bg-blue-700 text-white px-3 sm:px-4 py-2 rounded-lg font-semibold transition duration-200 text-center">
+                    <i class="fas fa-code mr-2"></i>View Server Code
+                </a>
+                <a href="{% url 'devops:project_edit' project.pk %}" class="bg-green-600 hover:bg-green-700 text-white px-3 sm:px-4 py-2 rounded-lg font-semibold transition duration-200 text-center">
+                    <i class="fas fa-edit mr-2"></i>Edit
+                </a>
+                <a href="{% url 'devops:project_delete' project.pk %}" class="bg-red-600 hover:bg-red-700 text-white px-3 sm:px-4 py-2 rounded-lg font-semibold transition duration-200 text-center">
+                    <i class="fas fa-trash mr-2"></i>Delete
+                </a>
+            </div>
+        </div>
+
+        <!-- Project Information -->
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
+            <!-- Basic Information -->
+            <div class="bg-white rounded-lg shadow-md p-4 sm:p-6">
+                <h3 class="text-lg sm:text-xl font-semibold text-gray-800 mb-4">
+                    <i class="fas fa-info-circle mr-2"></i>Basic Information
+                </h3>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Project Name</label>
+                        <p class="text-gray-900 break-words">{{ project.project_name }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Owner</label>
+                        <p class="text-gray-900 break-words">{{ project.owner.get_full_name|default:project.owner.email }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Deployment Status</label>
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
+                            <span class="inline-flex items-center px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold border-2 w-full sm:w-auto justify-center sm:justify-start
+                                {% if project.deployment_status == 'deployed' %}border-green-200 bg-green-50 text-green-800
+                                {% elif project.deployment_status == 'pending' %}border-yellow-200 bg-yellow-50 text-yellow-800
+                                {% elif project.deployment_status == 'failed' %}border-red-200 bg-red-50 text-red-800
+                                {% else %}border-gray-200 bg-gray-50 text-gray-800{% endif %}">
+                                {% if project.deployment_status == 'deployed' %}
+                                    <i class="fas fa-check-circle mr-2 text-green-600"></i>
+                                {% elif project.deployment_status == 'pending' %}
+                                    <i class="fas fa-clock mr-2 text-yellow-600"></i>
+                                {% elif project.deployment_status == 'failed' %}
+                                    <i class="fas fa-times-circle mr-2 text-red-600"></i>
+                                {% else %}
+                                    <i class="fas fa-question-circle mr-2 text-gray-600"></i>
+                                {% endif %}
+                                {{ project.get_deployment_status_display }}
+                            </span>
+                        </div>
+                        <!-- Progress indicator -->
+                        <div class="mt-2 w-full bg-gray-200 rounded-full h-2">
+                            <div class="h-2 rounded-full transition-all duration-300
+                                {% if project.deployment_status == 'deployed' %}bg-green-500 w-full
+                                {% elif project.deployment_status == 'pending' %}bg-yellow-500 w-2/3
+                                {% elif project.deployment_status == 'failed' %}bg-red-500 w-1/3
+                                {% else %}bg-gray-400 w-1/4{% endif %}">
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Created</label>
+                        <p class="text-gray-900 text-sm sm:text-base">{{ project.created_at|date:"F d, Y H:i" }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Last Updated</label>
+                        <p class="text-gray-900 text-sm sm:text-base">{{ project.updated_at|date:"F d, Y H:i" }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Technical Details -->
+            <div class="bg-white rounded-lg shadow-md p-4 sm:p-6">
+                <h3 class="text-lg sm:text-xl font-semibold text-gray-800 mb-4">
+                    <i class="fas fa-cogs mr-2"></i>Technical Details
+                </h3>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">GitHub Username</label>
+                        <p class="text-gray-900 break-words">{{ project.github_username }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Repository</label>
+                        <a href="{{ project.project_github_link }}" target="_blank" class="text-blue-600 hover:text-blue-800 break-words inline-block">
+                            {{ project.github_repo_name|default:"View Repository" }}
+                            <i class="fas fa-external-link-alt ml-1 text-xs"></i>
+                        </a>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Domain Name</label>
+                        <a href="{{ project.deployment_url }}" target="_blank" class="text-blue-600 hover:text-blue-800 break-words inline-block">
+                            {{ project.domain_name }}
+                            <i class="fas fa-external-link-alt ml-1 text-xs"></i>
+                        </a>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Database Name</label>
+                        <p class="text-gray-900 break-words">{{ project.database_name }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Project Description -->
+        <div class="bg-white rounded-lg shadow-md p-4 sm:p-6 mt-6 sm:mt-8">
+            <h3 class="text-lg sm:text-xl font-semibold text-gray-800 mb-4">
+                <i class="fas fa-file-alt mr-2"></i>Project Description
+            </h3>
+            <div class="prose max-w-none">
+                <p class="text-gray-700 whitespace-pre-line text-sm sm:text-base leading-relaxed">{{ project.project_details }}</p>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="bg-white rounded-lg shadow-md p-4 sm:p-6 mt-6 sm:mt-8">
+            <h3 class="text-lg sm:text-xl font-semibold text-gray-800 mb-4">
+                <i class="fas fa-bolt mr-2"></i>Quick Actions
+            </h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                <a href="{{ project.project_github_link }}" target="_blank" class="flex items-center justify-center p-3 sm:p-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition duration-200">
+                    <i class="fab fa-github text-xl sm:text-2xl mr-2 sm:mr-3"></i>
+                    <span class="text-sm sm:text-base">View Repository</span>
+                </a>
+                <a href="{{ project.deployment_url }}" target="_blank" class="flex items-center justify-center p-3 sm:p-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition duration-200">
+                    <i class="fas fa-globe text-xl sm:text-2xl mr-2 sm:mr-3"></i>
+                    <span class="text-sm sm:text-base">Visit Site</span>
+                </a>
+                <a href="{% url 'devops:project_edit' project.pk %}" class="flex items-center justify-center p-3 sm:p-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition duration-200 sm:col-span-2 lg:col-span-1">
+                    <i class="fas fa-edit text-xl sm:text-2xl mr-2 sm:mr-3"></i>
+                    <span class="text-sm sm:text-base">Edit Project</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Menu Toggle Script -->
+    <script>
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const menu = document.getElementById('mobile-menu');
+            const button = event.target.closest('button');
+            
+            if (!button && !menu.contains(event.target)) {
+                menu.classList.add('hidden');
+            }
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            const menu = document.getElementById('mobile-menu');
+            if (window.innerWidth >= 640) { // sm breakpoint
+                menu.classList.remove('hidden');
+            } else {
+                menu.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>

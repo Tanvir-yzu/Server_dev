@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Projects - DevOps</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script>
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+    </script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-blue-600 text-white p-4 shadow-lg">
+        <div class="container mx-auto">
+            <!-- Desktop Navigation -->
+            <div class="flex justify-between items-center">
+                <h1 class="text-lg sm:text-xl font-bold">
+                    <i class="fas fa-server mr-2"></i>DevOps Dashboard
+                </h1>
+                
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex space-x-4">
+                    <a href="{% url 'devops:dashboard' %}" class="hover:text-blue-200 transition duration-200 px-3 py-2 rounded">
+                        <i class="fas fa-home mr-1"></i>Dashboard
+                    </a>
+                    <a href="{% url 'profile' %}" class="hover:text-blue-200 transition duration-200 px-3 py-2 rounded">
+                        <i class="fas fa-user mr-1"></i>Profile
+                    </a>
+                    <a href="{% url 'logout' %}" class="hover:text-blue-200 transition duration-200 px-3 py-2 rounded">
+                        <i class="fas fa-sign-out-alt mr-1"></i>Logout
+                    </a>
+                </div>
+                
+                <!-- Mobile Menu Button -->
+                <button onclick="toggleMobileMenu()" class="md:hidden p-2 rounded hover:bg-blue-700 transition duration-200">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+            </div>
+            
+            <!-- Mobile Menu -->
+            <div id="mobile-menu" class="hidden md:hidden mt-4 pb-4">
+                <div class="flex flex-col space-y-2">
+                    <a href="{% url 'devops:dashboard' %}" class="hover:bg-blue-700 px-3 py-2 rounded transition duration-200">
+                        <i class="fas fa-home mr-2"></i>Dashboard
+                    </a>
+                    <a href="{% url 'profile' %}" class="hover:bg-blue-700 px-3 py-2 rounded transition duration-200">
+                        <i class="fas fa-user mr-2"></i>Profile
+                    </a>
+                    <a href="{% url 'logout' %}" class="hover:bg-blue-700 px-3 py-2 rounded transition duration-200">
+                        <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <!-- Header -->
+        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 sm:mb-8 space-y-4 sm:space-y-0">
+            <h2 class="text-2xl sm:text-3xl font-bold text-gray-800">My Projects</h2>
+            <a href="{% url 'devops:project_create' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold transition duration-200 text-center touch-manipulation">
+                <i class="fas fa-plus mr-2"></i>Create New Project
+            </a>
+        </div>
+
+        <!-- Projects Grid -->
+        {% if projects %}
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+                {% for project in projects %}
+                    <div class="bg-white rounded-lg shadow-md hover:shadow-lg transition duration-200 overflow-hidden">
+                        <div class="p-4 sm:p-6">
+                            <!-- Project Header -->
+                            <div class="flex flex-col space-y-3 mb-4">
+                                <div class="flex justify-between items-start">
+                                    <h3 class="text-lg sm:text-xl font-semibold text-gray-800 flex-1 pr-2 leading-tight">
+                                        {{ project.project_name }}
+                                    </h3>
+                                    <span class="px-2 sm:px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap
+                                        {% if project.deployment_status == 'deployed' %}bg-green-100 text-green-800
+                                        {% elif project.deployment_status == 'pending' %}bg-yellow-100 text-yellow-800
+                                        {% elif project.deployment_status == 'failed' %}bg-red-100 text-red-800
+                                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                        {{ project.get_deployment_status_display }}
+                                    </span>
+                                </div>
+                                
+                                <!-- Server Code Link - Mobile Friendly -->
+                                <a href="{% url 'devops:server_code' project.pk %}" class="text-blue-600 hover:text-blue-800 text-sm font-medium touch-manipulation">
+                                    <i class="fas fa-code mr-2"></i>View Server Code
+                                </a>
+                            </div>
+                            
+                            <!-- Project Details -->
+                            <div class="space-y-2 mb-4">
+                                <p class="text-sm text-gray-600 break-all">
+                                    <i class="fab fa-github mr-2 text-gray-400"></i>{{ project.github_username }}
+                                </p>
+                                <p class="text-sm text-gray-600 break-all">
+                                    <i class="fas fa-globe mr-2 text-gray-400"></i>{{ project.domain_name }}
+                                </p>
+                                <p class="text-sm text-gray-600 break-all">
+                                    <i class="fas fa-database mr-2 text-gray-400"></i>{{ project.database_name }}
+                                </p>
+                            </div>
+                            
+                            <!-- Project Description -->
+                            <p class="text-gray-700 text-sm mb-4 line-clamp-3 leading-relaxed">
+                                {{ project.project_details|truncatewords:15 }}
+                            </p>
+                            
+                            <!-- Footer -->
+                            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-3 sm:space-y-0">
+                                <span class="text-xs text-gray-500">
+                                    Created {{ project.created_at|date:"M d, Y" }}
+                                </span>
+                                
+                                <!-- Action Buttons -->
+                                <div class="flex space-x-3 sm:space-x-2">
+                                    <a href="{% url 'devops:project_detail' project.pk %}" 
+                                       class="text-blue-600 hover:text-blue-800 p-2 hover:bg-blue-50 rounded transition duration-200 touch-manipulation"
+                                       title="View Details">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{% url 'devops:project_edit' project.pk %}" 
+                                       class="text-green-600 hover:text-green-800 p-2 hover:bg-green-50 rounded transition duration-200 touch-manipulation"
+                                       title="Edit Project">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{% url 'devops:project_delete' project.pk %}" 
+                                       class="text-red-600 hover:text-red-800 p-2 hover:bg-red-50 rounded transition duration-200 touch-manipulation"
+                                       title="Delete Project">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if is_paginated %}
+                <div class="flex justify-center mt-8">
+                    <nav class="flex flex-wrap justify-center gap-2">
+                        {% if page_obj.has_previous %}
+                            <a href="?page=1" class="px-3 py-2 bg-white border border-gray-300 rounded hover:bg-gray-50 text-sm touch-manipulation transition duration-200">
+                                <span class="hidden sm:inline">First</span>
+                                <i class="fas fa-angle-double-left sm:hidden"></i>
+                            </a>
+                            <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-2 bg-white border border-gray-300 rounded hover:bg-gray-50 text-sm touch-manipulation transition duration-200">
+                                <span class="hidden sm:inline">Previous</span>
+                                <i class="fas fa-angle-left sm:hidden"></i>
+                            </a>
+                        {% endif %}
+                        
+                        <span class="px-3 py-2 bg-blue-600 text-white border border-blue-600 rounded text-sm">
+                            <span class="hidden sm:inline">Page </span>{{ page_obj.number }}<span class="hidden sm:inline"> of {{ page_obj.paginator.num_pages }}</span>
+                        </span>
+                        
+                        {% if page_obj.has_next %}
+                            <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-2 bg-white border border-gray-300 rounded hover:bg-gray-50 text-sm touch-manipulation transition duration-200">
+                                <span class="hidden sm:inline">Next</span>
+                                <i class="fas fa-angle-right sm:hidden"></i>
+                            </a>
+                            <a href="?page={{ page_obj.paginator.num_pages }}" class="px-3 py-2 bg-white border border-gray-300 rounded hover:bg-gray-50 text-sm touch-manipulation transition duration-200">
+                                <span class="hidden sm:inline">Last</span>
+                                <i class="fas fa-angle-double-right sm:hidden"></i>
+                            </a>
+                        {% endif %}
+                    </nav>
+                </div>
+            {% endif %}
+        {% else %}
+            <!-- Empty State -->
+            <div class="text-center py-12 px-4">
+                <i class="fas fa-folder-open text-4xl sm:text-6xl text-gray-400 mb-4"></i>
+                <h3 class="text-lg sm:text-xl font-semibold text-gray-600 mb-2">No projects yet</h3>
+                <p class="text-gray-500 mb-6 text-sm sm:text-base max-w-md mx-auto">
+                    Create your first project to get started with DevOps deployment
+                </p>
+                <a href="{% url 'devops:project_create' %}" class="inline-block bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition duration-200 touch-manipulation">
+                    <i class="fas fa-plus mr-2"></i>Create Your First Project
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>

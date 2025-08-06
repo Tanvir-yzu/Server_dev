@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Profile - {{ user.get_full_name|default:user.email }}</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Font Awesome -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 text-gray-800 min-h-screen flex flex-col">
+
+  <!-- Navbar -->
+  <nav class="bg-gradient-to-r from-indigo-500 to-purple-600 p-3 sm:p-4 shadow-md">
+    <div class="container mx-auto flex justify-between items-center px-2 sm:px-0">
+      <a href="{% url 'profile' %}" class="text-white text-lg sm:text-xl font-semibold flex items-center gap-1 sm:gap-2">
+        <i class="fas fa-user-circle text-lg sm:text-xl"></i> 
+        <span class="hidden xs:inline">Profile</span>
+      </a>
+      <a href="{% url 'logout' %}" class="text-white hover:underline flex items-center gap-1 text-sm sm:text-base">
+        <i class="fas fa-sign-out-alt"></i> 
+        <span class="hidden xs:inline">Logout</span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="flex-grow">
+    <!-- Alerts -->
+    {% if messages %}
+      <div class="container mx-auto mt-4 px-4">
+        {% for message in messages %}
+          <div class="bg-blue-100 border border-blue-300 text-blue-700 px-3 sm:px-4 py-2 sm:py-3 rounded relative mb-2 text-sm sm:text-base" role="alert">
+            <strong class="font-bold"><i class="fas fa-info-circle mr-1"></i>Info: </strong>
+            <span class="block sm:inline">{{ message }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <!-- Profile Header -->
+    <div class="bg-gradient-to-r from-indigo-500 to-purple-600 py-8 sm:py-12 text-center text-white px-4">
+      <div class="container mx-auto">
+        {% if profile.photo %}
+          <img src="{{ profile.photo.url }}" alt="Profile Photo" class="w-24 h-24 sm:w-32 sm:h-32 lg:w-36 lg:h-36 object-cover rounded-full mx-auto border-4 border-white shadow-lg" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+          <div class="w-24 h-24 sm:w-32 sm:h-32 lg:w-36 lg:h-36 rounded-full mx-auto bg-indigo-700 text-2xl sm:text-3xl lg:text-4xl font-bold flex items-center justify-center shadow-lg" style="display: none;">
+            {{ user.first_name.0|default:user.email.0|upper }}
+          </div>
+        {% else %}
+          <div class="w-24 h-24 sm:w-32 sm:h-32 lg:w-36 lg:h-36 rounded-full mx-auto bg-indigo-700 text-2xl sm:text-3xl lg:text-4xl font-bold flex items-center justify-center shadow-lg">
+            {{ user.first_name.0|default:user.email.0|upper }}
+          </div>
+        {% endif %}
+        <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold mt-3 sm:mt-4 px-2">{{ user.get_full_name|default:user.email }}</h1>
+        <p class="text-sm sm:text-base lg:text-lg mt-2 italic px-4 max-w-2xl mx-auto">
+          {% if profile.bio %}
+            {{ profile.bio|truncatewords:20 }}
+          {% else %}
+            Welcome to your profile!
+          {% endif %}
+        </p>
+      </div>
+    </div>
+
+    <!-- Profile Card -->
+    <div class="container mx-auto px-4 mt-6 sm:mt-10 pb-8">
+      <div class="bg-white rounded-xl shadow-xl p-4 sm:p-6 max-w-4xl mx-auto -mt-8 sm:-mt-16 relative z-10">
+        
+        <!-- Edit Button -->
+        <div class="text-center mb-4 sm:mb-6">
+          <a href="{% url 'edit_profile' %}" class="inline-block bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-4 sm:px-6 py-2 rounded-full shadow hover:scale-105 transition text-sm sm:text-base">
+            <i class="fas fa-edit mr-1 sm:mr-2"></i>Edit Profile
+          </a>
+        </div>
+
+        <!-- Info Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+          <!-- Left Info -->
+          <div class="space-y-3 sm:space-y-4">
+            <div>
+              <label class="block text-gray-600 font-semibold mb-1 text-sm sm:text-base">
+                <i class="fas fa-envelope mr-1 sm:mr-2"></i>Email
+              </label>
+              <p class="text-gray-800 text-sm sm:text-base break-all">{{ user.email }}</p>
+            </div>
+            <div>
+              <label class="block text-gray-600 font-semibold mb-1 text-sm sm:text-base">
+                <i class="fas fa-user mr-1 sm:mr-2"></i>Full Name
+              </label>
+              <p class="text-gray-800 text-sm sm:text-base">{{ user.full_name|default:"Not set" }}</p>
+            </div>
+            {% if profile.phone_number %}
+            <div>
+              <label class="block text-gray-600 font-semibold mb-1 text-sm sm:text-base">
+                <i class="fas fa-phone mr-1 sm:mr-2"></i>Phone
+              </label>
+              <p class="text-gray-800 text-sm sm:text-base">{{ profile.phone_number }}</p>
+            </div>
+            {% endif %}
+          </div>
+
+          <!-- Right Info -->
+          <div class="space-y-3 sm:space-y-4">
+            <div>
+              <label class="block text-gray-600 font-semibold mb-1 text-sm sm:text-base">
+                <i class="fab fa-github mr-1 sm:mr-2"></i>GitHub
+              </label>
+              {% if profile.github_link %}
+                <a href="{{ profile.github_link }}" target="_blank" class="text-indigo-600 hover:underline flex items-center text-sm sm:text-base break-all">
+                  <i class="fas fa-external-link-alt mr-1 sm:mr-2 flex-shrink-0"></i>
+                  <span class="truncate">View Profile</span>
+                </a>
+              {% else %}
+                <p class="text-gray-800 text-sm sm:text-base">Not provided</p>
+              {% endif %}
+            </div>
+            <div>
+              <label class="block text-gray-600 font-semibold mb-1 text-sm sm:text-base">
+                <i class="fas fa-toggle-on mr-1 sm:mr-2"></i>Status
+              </label>
+              {% if user.is_active %}
+                <span class="inline-block bg-green-100 text-green-800 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-semibold">
+                  <i class="fas fa-check-circle mr-1"></i> Active
+                </span>
+              {% else %}
+                <span class="inline-block bg-red-100 text-red-800 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-semibold">
+                  <i class="fas fa-times-circle mr-1"></i> Inactive
+                </span>
+              {% endif %}
+            </div>
+            {% if user.is_staff %}
+            <div>
+              <label class="block text-gray-600 font-semibold mb-1 text-sm sm:text-base">
+                <i class="fas fa-user-shield mr-1 sm:mr-2"></i>Admin Access
+              </label>
+              <a href="/admin/" target="_blank" class="inline-block bg-purple-100 text-purple-800 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-semibold hover:bg-purple-200 transition">
+                <i class="fas fa-cog mr-1"></i> Admin Panel
+              </a>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- About Section -->
+        {% if profile.bio %}
+          <div class="mt-6 sm:mt-8">
+            <h2 class="text-lg sm:text-xl font-semibold text-gray-700 mb-2">
+              <i class="fas fa-quote-left mr-1 sm:mr-2"></i>About Me
+            </h2>
+            <div class="bg-gray-100 p-3 sm:p-4 rounded-lg text-gray-700 text-sm sm:text-base">
+              {{ profile.bio|linebreaks }}
+            </div>
+          </div>
+        {% endif %}
+
+        <!-- Account Details -->
+        <div class="mt-6 sm:mt-8">
+          <h2 class="text-lg sm:text-xl font-semibold text-gray-700 mb-2">
+            <i class="fas fa-info-circle mr-1 sm:mr-2"></i>Account Details
+          </h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 text-xs sm:text-sm text-gray-600">
+            <p class="flex items-center">
+              <i class="fas fa-calendar-plus mr-1 sm:mr-2 flex-shrink-0"></i>
+              <span>Member since: {{ user.date_joined|date:"M d, Y" }}</span>
+            </p>
+            <p class="flex items-center">
+              <i class="fas fa-clock mr-1 sm:mr-2 flex-shrink-0"></i>
+              <span>Last login: {{ user.last_login|date:"M d, Y"|default:"Never" }}</span>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="text-center mt-8 sm:mt-16 py-4 sm:py-6 bg-gray-800 text-white text-xs sm:text-sm">
+    <div class="container mx-auto px-4">
+      <p>&copy; {% now "Y" %} Server Dev Project. All rights reserved.</p>
+    </div>
+  </footer>
+
+</body>
+</html>
