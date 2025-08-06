@@ -1,0 +1,17 @@
+[Unit]
+Description=Excel_tech-uWSGI-instance
+After=network.target postgresql-14.service
+
+[Service]
+User=root
+Group=nginx
+WorkingDirectory=/opt/Excel_tech
+Environment="PATH=/opt/Excel_tech/venv/bin"
+ExecStart=/opt/Excel_tech/venv/bin/uwsgi --ini /opt/Excel_tech/uwsgi/uwsgi.ini
+Restart=always
+KillSignal=SIGQUIT
+Type=notify
+NotifyAccess=all
+
+[Install]
+WantedBy=multi-user.target

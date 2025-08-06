@@ -1,0 +1,49 @@
+import os
+from pathlib import Path
+from django.core.management.utils import get_random_secret_key
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
+STATICFILES_DIR = os.path.join(BASE_DIR, "staticfiles")
+STATIC_DIR = os.path.join(BASE_DIR, "static")
+MEDIA_DIR = os.path.join(BASE_DIR, "media")
+LOGS_DIR = os.path.join(BASE_DIR, "logs")
+
+# SECURITY WARNING: keep the secret key used in production secret!
+# SECRET_KEY = get_random_secret_key()
+SECRET_KEY = get_random_secret_key()
+
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = False
+
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    '185.227.134.143',
+    'exceltech.com.bd',
+    'www.exceltech.com.bd',
+
+]
+
+# Email Configuration for Gmail
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'your-email@gmail.com'  # Replace with your Gmail address
+EMAIL_HOST_PASSWORD = 'your-app-password'  # Use App Password, not regular Gmail password
+DEFAULT_FROM_EMAIL = 'your-email@gmail.com'  # Replace with your Gmail address
+
+# For PostgreSQL database (comment it if not needed)
+DB_CONFIG = {
+    'ENGINE': os.getenv('DB_ENGINE', 'django.db.backends.postgresql'),
+    'HOST': os.getenv('DB_HOST', '127.0.0.1'),
+    'PORT': os.getenv('DB_PORT', 5432),
+    'NAME': os.getenv('DB_NAME', '<database_name>'),
+    'USER': os.getenv('DB_USER', '<db_user>'),
+    'PASSWORD': os.getenv('DB_PASS', '<db_password>')
+}
+
+
+
+
