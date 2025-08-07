@@ -71,7 +71,7 @@ class ProfileView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user = self.request.user
-        profile = user.profile  # Assuming you have a 1-to-1 Profile and it's accessible as .profile
+        profile, created = Profile.objects.get_or_create(user=user)
         context['user'] = user
         context['profile'] = profile
         return context

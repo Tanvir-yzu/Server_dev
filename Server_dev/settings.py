@@ -2,52 +2,68 @@ import os
 
 from .local_settings import (
     SECRET_KEY, DEBUG, ALLOWED_HOSTS, DB_CONFIG,
-    TEMPLATES_DIR, STATICFILES_DIR, STATIC_DIR, MEDIA_DIR, LOGS_DIR, EMAIL_HOST_USER, EMAIL_HOST_PASSWORD,DEFAULT_FROM_EMAIL
+    TEMPLATES_DIR, STATICFILES_DIR, STATIC_DIR, MEDIA_DIR, LOGS_DIR,
+    EMAIL_HOST_USER, EMAIL_HOST_PASSWORD, DEFAULT_FROM_EMAIL
 )
 from Server_dev.logging import LOGGING
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+# Build paths inside the project like this: BASE_DIR / 'subdir'
 SETTINGS_DIR = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.dirname(SETTINGS_DIR)
+
+# Optional: Allow overriding via environment
 TEMPLATES_DIR = os.getenv('TEMPLATES_DIR', TEMPLATES_DIR)
 STATICFILES_DIR = os.getenv('STATICFILES_DIR', STATICFILES_DIR)
 STATIC_DIR = os.getenv('STATIC_DIR', STATIC_DIR)
 MEDIA_DIR = os.getenv('MEDIA_DIR', MEDIA_DIR)
 LOGS_DIR = os.getenv('LOGS_DIR', LOGS_DIR)
 
+# ======================
+# Core Django Settings
+# ======================
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = SECRET_KEY
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = DEBUG
-
 ALLOWED_HOSTS = ALLOWED_HOSTS
 
+# ======================
 # Custom User Model
+# ======================
 AUTH_USER_MODEL = 'Auth.CustomUser'
 
-# Login / Logout redirects
-LOGIN_URL = 'login'  # Add this line to fix the login redirect
-LOGIN_REDIRECT_URL = 'devops:dashboard'  # Change to redirect to dashboard after login
+# ======================
+# Login / Logout Redirects
+# ======================
+LOGIN_URL = 'login'
+LOGOUT_URL = 'logout'
+LOGIN_REDIRECT_URL = 'devops:dashboard'  # Assuming namespaced URL
 LOGOUT_REDIRECT_URL = 'login'
+SOCIALACCOUNT_LOGIN_ON_GET = True  # Redirect to the login page after successful login
 
-
-# Application definition
-
+# ======================
+# Applications
+# ======================
 INSTALLED_APPS = [
-    'jazzmin',
+    'jazzmin',  # Admin theme (install via pip)
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',  # Required by allauth
+
+    # Third-party
     'django_extensions',
-    'Auth',
-    'DevOps',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',  # Example provider
+    'allauth.socialaccount.providers.github',
+
+    # Your apps
+    'Auth',       # CustomUser model likely here
+    'DevOps',     # Your main app
 ]
 
 MIDDLEWARE = [
@@ -56,22 +72,29 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'allauth.account.middleware.AccountMiddleware',  # Required by allauth
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
 ROOT_URLCONF = 'Server_dev.urls'
 
+# ======================
+# Templates
+# ======================
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [],  # Add custom dirs like [BASE_DIR / 'templates'] if needed
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                # ❌ Remove deprecated allauth context processors:
+                # 'allauth.account.context_processors.account',
+                # 'allauth.socialaccount.context_processors.socialaccount',
             ],
         },
     },
@@ -79,62 +102,110 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'Server_dev.wsgi.application'
 
-
+# ======================
 # Database
-# https://docs.djangoproject.com/en/4.0/ref/settings/#databases
-
+# ======================
 DATABASES = {
-    'default': os.getenv('DB_CONFIG', DB_CONFIG)
+    'default': os.getenv('DB_CONFIG', DB_CONFIG)  # Usually a dict from local_settings.py
 }
 
-# Password validation
-# https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
-
+# ======================
+# Password Validation
+# ======================
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-
+# ======================
 # Internationalization
-# https://docs.djangoproject.com/en/5.2/topics/i18n/
-
+# ======================
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_TZ = True
 
+# ======================
+# Authentication & Allauth (Fixed)
+# ======================
+AUTHENTICATION_BACKENDS = [
+    'allauth.account.auth_backends.AuthenticationBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.2/howto/static-files/
+SITE_ID = 1
 
+# ✅ Correct & Modern Settings (No Deprecations)
+ACCOUNT_LOGIN_METHODS = {'email'}  # ✅ Only allow login with email
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1', 'password2']  # ✅ email* = required & used for login
+
+ACCOUNT_UNIQUE_EMAIL = True
+ACCOUNT_EMAIL_VERIFICATION = 'mandatory'  # ✅ User MUST verify email before accessing site
+
+ACCOUNT_LOGOUT_ON_GET = True
+ACCOUNT_RATE_LIMITS = {
+    'login_failed': '5/5m',
+}
+
+# ======================
+# Social Account Providers (e.g., Google)
+# ======================
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': [
+            'profile',
+            'email',
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+        },
+        'OAUTH_PKCE_ENABLED': True,
+    },
+    'github': {
+        'SCOPE': [
+            'user:email',
+        ],
+        'VERIFIED_EMAIL': True,
+    }
+}
+
+# Add these social account settings
+SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'
+SOCIALACCOUNT_AUTO_SIGNUP = True
+SOCIALACCOUNT_EMAIL_REQUIRED = True
+SOCIALACCOUNT_STORE_TOKENS = True  # Store OAuth tokens for later use
+# ======================
+# Email Configuration (SMTP)
+# ======================
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = EMAIL_HOST_USER         # From local_settings.py or env
+EMAIL_HOST_PASSWORD = EMAIL_HOST_PASSWORD  # App password if 2FA enabled
+DEFAULT_FROM_EMAIL = DEFAULT_FROM_EMAIL    # e.g. noreply@example.com
+
+# ======================
+# Static & Media
+# ======================
 STATIC_URL = '/static/'
-STATIC_ROOT = STATIC_DIR  # production, don't forget to run collectstatic
-STATICFILES_DIRS = [STATICFILES_DIR, ]  # development environment
+STATIC_ROOT = STATIC_DIR  # For collectstatic (prod)
+
+STATICFILES_DIRS = [STATICFILES_DIR]  # Optional dev static files folder
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = MEDIA_DIR
 
-
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
-
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-
-if os.getenv('DISABLE_LOGGING', False):  # for celery in jenkins ci only
+# ======================
+# Logging
+# ======================
+if os.getenv('DISABLE_LOGGING', False):  # e.g., for CI/CD
     LOGGING_CONFIG = None
-LOGGING = LOGGING  # logging.py
+LOGGING = LOGGING  # Imported from Server_dev.logging
+
+# ======================
+# Default Auto Field
+# ======================
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
