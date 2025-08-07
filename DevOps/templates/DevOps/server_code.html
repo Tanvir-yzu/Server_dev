@@ -5,152 +5,157 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Server Code - {{ project.project_name }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script>
-        function showTab(tabName) {
-            // Hide all tab contents
-            const tabs = ['ssh-key', 'dev-setup', 'db-setup', 'deploy-setup', 'uwsgi-server', 'service-config', 'nginx-config'];
-            
-            tabs.forEach(tab => {
-                const content = document.getElementById(tab + '-content');
-                const tabButton = document.getElementById(tab + '-tab');
-                if (content && tabButton) {
-                    content.classList.add('hidden');
-                    tabButton.classList.remove('border-blue-500', 'text-blue-600', 'bg-blue-50');
-                    tabButton.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
-                }
-            });
-            
-            // Show selected tab content
-            const selectedContent = document.getElementById(tabName + '-content');
-            const selectedTab = document.getElementById(tabName + '-tab');
-            if (selectedContent && selectedTab) {
-                selectedContent.classList.remove('hidden');
-                selectedTab.classList.add('border-blue-500', 'text-blue-600', 'bg-blue-50');
-                selectedTab.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
-            }
+    <style>
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
-
-        function copyToClipboard(elementId) {
-            const element = document.getElementById(elementId);
-            const text = element.textContent;
-            navigator.clipboard.writeText(text).then(() => {
-                // Show success message
-                const button = event.target.closest('button');
-                const originalText = button.innerHTML;
-                button.innerHTML = '<i class="fas fa-check mr-2"></i>Copied!';
-                button.classList.add('bg-green-600');
-                setTimeout(() => {
-                    button.innerHTML = originalText;
-                    button.classList.remove('bg-green-600');
-                }, 2000);
-            }).catch(err => {
-                console.error('Failed to copy: ', err);
-                // Fallback for older browsers
-                const textArea = document.createElement('textarea');
-                textArea.value = text;
-                document.body.appendChild(textArea);
-                textArea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textArea);
-                
-                const button = event.target.closest('button');
-                const originalText = button.innerHTML;
-                button.innerHTML = '<i class="fas fa-check mr-2"></i>Copied!';
-                button.classList.add('bg-green-600');
-                setTimeout(() => {
-                    button.innerHTML = originalText;
-                    button.classList.remove('bg-green-600');
-                }, 2000);
-            });
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
         }
-
-        function toggleMobileMenu() {
-            const menu = document.getElementById('mobile-menu');
-            menu.classList.toggle('hidden');
+        .code-block {
+            background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
         }
-
-        // Initialize first tab on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            showTab('ssh-key');
-        });
-    </script>
+        .tab-transition {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .copy-success {
+            animation: pulse 0.5s ease-in-out;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+    </style>
 </head>
-<body class="bg-gray-100 min-h-screen">
+<body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen" x-data="serverCodeApp()">
     <!-- Navigation -->
-    <nav class="bg-blue-600 text-white p-4 shadow-lg">
-        <div class="container mx-auto">
-            <div class="flex justify-between items-center">
-                <h1 class="text-lg sm:text-xl font-bold">
-                    <i class="fas fa-server mr-2"></i>DevOps Dashboard
+    <nav class="bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-xl">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <h1 class="text-lg sm:text-xl font-bold flex items-center">
+                    <i class="fas fa-server mr-2 text-blue-200"></i>DevOps Dashboard
                 </h1>
                 
                 <!-- Desktop Menu -->
-                <div class="hidden md:flex space-x-4">
-                    <a href="{% url 'devops:dashboard' %}" class="hover:text-blue-200 transition duration-200 px-3 py-2 rounded">
-                        <i class="fas fa-home mr-1"></i>Dashboard
+                <div class="hidden md:flex space-x-2">
+                    <a href="{% url 'devops:dashboard' %}" class="hover:bg-blue-500 transition-all duration-200 px-4 py-2 rounded-lg flex items-center">
+                        <i class="fas fa-home mr-2"></i>Dashboard
                     </a>
-                    <a href="{% url 'devops:project_list' %}" class="hover:text-blue-200 transition duration-200 px-3 py-2 rounded">
-                        <i class="fas fa-list mr-1"></i>Projects
+                    <a href="{% url 'devops:project_list' %}" class="hover:bg-blue-500 transition-all duration-200 px-4 py-2 rounded-lg flex items-center">
+                        <i class="fas fa-list mr-2"></i>Projects
                     </a>
-                    <a href="{% url 'profile' %}" class="hover:text-blue-200 transition duration-200 px-3 py-2 rounded">
-                        <i class="fas fa-user mr-1"></i>Profile
+                    <a href="{% url 'profile' %}" class="hover:bg-blue-500 transition-all duration-200 px-4 py-2 rounded-lg flex items-center">
+                        <i class="fas fa-user mr-2"></i>Profile
                     </a>
-                    <a href="{% url 'logout' %}" class="hover:text-blue-200 transition duration-200 px-3 py-2 rounded">
-                        <i class="fas fa-sign-out-alt mr-1"></i>Logout
+                    <a href="{% url 'logout' %}" class="hover:bg-blue-500 transition-all duration-200 px-4 py-2 rounded-lg flex items-center">
+                        <i class="fas fa-sign-out-alt mr-2"></i>Logout
                     </a>
                 </div>
                 
                 <!-- Mobile Menu Button -->
-                <button onclick="toggleMobileMenu()" class="md:hidden p-2 rounded hover:bg-blue-700 transition duration-200">
-                    <i class="fas fa-bars text-xl"></i>
+                <button @click="mobileMenuOpen = !mobileMenuOpen" class="md:hidden p-2 rounded-lg hover:bg-blue-500 transition-all duration-200">
+                    <i class="fas fa-bars text-xl" x-show="!mobileMenuOpen"></i>
+                    <i class="fas fa-times text-xl" x-show="mobileMenuOpen" x-cloak></i>
                 </button>
             </div>
             
             <!-- Mobile Menu -->
-            <div id="mobile-menu" class="hidden md:hidden mt-4 pb-4">
+            <div x-show="mobileMenuOpen" 
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0 transform -translate-y-2"
+                 x-transition:enter-end="opacity-100 transform translate-y-0"
+                 x-transition:leave="transition ease-in duration-150"
+                 x-transition:leave-start="opacity-100 transform translate-y-0"
+                 x-transition:leave-end="opacity-0 transform -translate-y-2"
+                 class="md:hidden pb-4" x-cloak>
                 <div class="flex flex-col space-y-2">
-                    <a href="{% url 'devops:dashboard' %}" class="hover:bg-blue-700 px-3 py-2 rounded transition duration-200">
-                        <i class="fas fa-home mr-2"></i>Dashboard
+                    <a href="{% url 'devops:dashboard' %}" class="hover:bg-blue-500 px-4 py-3 rounded-lg transition-all duration-200 flex items-center">
+                        <i class="fas fa-home mr-3"></i>Dashboard
                     </a>
-                    <a href="{% url 'devops:project_list' %}" class="hover:bg-blue-700 px-3 py-2 rounded transition duration-200">
-                        <i class="fas fa-list mr-2"></i>Projects
+                    <a href="{% url 'devops:project_list' %}" class="hover:bg-blue-500 px-4 py-3 rounded-lg transition-all duration-200 flex items-center">
+                        <i class="fas fa-list mr-3"></i>Projects
                     </a>
-                    <a href="{% url 'profile' %}" class="hover:bg-blue-700 px-3 py-2 rounded transition duration-200">
-                        <i class="fas fa-user mr-2"></i>Profile
+                    <a href="{% url 'profile' %}" class="hover:bg-blue-500 px-4 py-3 rounded-lg transition-all duration-200 flex items-center">
+                        <i class="fas fa-user mr-3"></i>Profile
                     </a>
-                    <a href="{% url 'logout' %}" class="hover:bg-blue-700 px-3 py-2 rounded transition duration-200">
-                        <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                    <a href="{% url 'logout' %}" class="hover:bg-blue-500 px-4 py-3 rounded-lg transition-all duration-200 flex items-center">
+                        <i class="fas fa-sign-out-alt mr-3"></i>Logout
                     </a>
                 </div>
             </div>
         </div>
     </nav>
 
+    <!-- Breadcrumb -->
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <nav class="flex" aria-label="Breadcrumb">
+            <ol class="inline-flex items-center space-x-1 md:space-x-3">
+                <li class="inline-flex items-center">
+                    <a href="{% url 'devops:dashboard' %}" class="text-gray-700 hover:text-blue-600 inline-flex items-center">
+                        <i class="fas fa-home mr-2"></i>
+                        Dashboard
+                    </a>
+                </li>
+                <li>
+                    <div class="flex items-center">
+                        <i class="fas fa-chevron-right text-gray-400 mx-2"></i>
+                        <a href="{% url 'devops:project_list' %}" class="text-gray-700 hover:text-blue-600">
+                            Projects
+                        </a>
+                    </div>
+                </li>
+                <li>
+                    <div class="flex items-center">
+                        <i class="fas fa-chevron-right text-gray-400 mx-2"></i>
+                        <a href="{% url 'devops:project_detail' project.pk %}" class="text-gray-700 hover:text-blue-600">
+                            {{ project.project_name }}
+                        </a>
+                    </div>
+                </li>
+                <li aria-current="page">
+                    <div class="flex items-center">
+                        <i class="fas fa-chevron-right text-gray-400 mx-2"></i>
+                        <span class="text-gray-500">Server Code</span>
+                    </div>
+                </li>
+            </ol>
+        </nav>
+    </div>
     <!-- Main Content -->
     <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <!-- Header -->
-        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-4 sm:space-y-0">
-                <div>
-                    <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">Server Configuration</h2>
-                    <p class="text-gray-600">
-                        <i class="fas fa-project-diagram mr-2"></i>{{ project.project_name }}
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-8 border border-gray-100">
+            <div class="flex flex-col lg:flex-row lg:justify-between lg:items-center space-y-4 lg:space-y-0">
+                <div class="space-y-3">
+                    <h2 class="text-3xl sm:text-4xl font-bold text-gray-800 flex items-center">
+                        <i class="fas fa-cogs mr-3 text-blue-600"></i>Server Configuration
+                    </h2>
+                    <p class="text-xl text-gray-600 flex items-center">
+                        <i class="fas fa-project-diagram mr-2 text-green-600"></i>{{ project.project_name }}
                     </p>
-                    <div class="mt-2 text-sm text-gray-500">
-                        <span class="mr-4"><i class="fab fa-github mr-1"></i>{{ project.github_username }}</span>
-                        <span class="mr-4"><i class="fas fa-globe mr-1"></i>{{ project.domain_name }}</span>
-                        <span><i class="fas fa-database mr-1"></i>{{ project.database_name }}</span>
+                    <div class="flex flex-wrap gap-4 text-sm text-gray-500">
+                        <span class="flex items-center bg-gray-50 px-3 py-1 rounded-full">
+                            <i class="fab fa-github mr-2 text-gray-700"></i>{{ project.github_username }}
+                        </span>
+                        <span class="flex items-center bg-gray-50 px-3 py-1 rounded-full">
+                            <i class="fas fa-globe mr-2 text-blue-600"></i>{{ project.domain_name }}
+                        </span>
+                        <span class="flex items-center bg-gray-50 px-3 py-1 rounded-full">
+                            <i class="fas fa-database mr-2 text-green-600"></i>{{ project.database_name }}
+                        </span>
                     </div>
                 </div>
-                <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
-                    <a href="{% url 'devops:project_detail' project.pk %}" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-semibold transition duration-200 text-center">
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <a href="{% url 'devops:project_detail' project.pk %}" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-200 text-center shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
                         <i class="fas fa-eye mr-2"></i>View Details
                     </a>
-                    <a href="{% url 'devops:project_edit' project.pk %}" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-semibold transition duration-200 text-center">
+                    <a href="{% url 'devops:project_edit' project.pk %}" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-200 text-center shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
                         <i class="fas fa-edit mr-2"></i>Edit Project
                     </a>
-                    <a href="{% url 'devops:project_list' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold transition duration-200 text-center">
+                    <a href="{% url 'devops:project_list' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-200 text-center shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
                         <i class="fas fa-arrow-left mr-2"></i>Back to List
                     </a>
                 </div>
@@ -158,64 +163,52 @@
         </div>
 
         <!-- Tab System -->
-        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
             <!-- Tab Navigation -->
-            <div class="border-b border-gray-200">
+            <div class="border-b border-gray-200 bg-gray-50">
                 <nav class="flex overflow-x-auto scrollbar-hide">
-                    <button id="ssh-key-tab" onclick="showTab('ssh-key')" 
-                            class="whitespace-nowrap py-4 px-4 sm:px-6 border-b-2 font-medium text-xs sm:text-sm border-blue-500 text-blue-600 bg-blue-50 transition duration-200">
-                        <i class="fas fa-key mr-1 sm:mr-2"></i><span class="hidden sm:inline">SSH Key </span>Management
-                    </button>
-                    <button id="dev-setup-tab" onclick="showTab('dev-setup')" 
-                            class="whitespace-nowrap py-4 px-4 sm:px-6 border-b-2 font-medium text-xs sm:text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 transition duration-200">
-                        <i class="fas fa-code mr-1 sm:mr-2"></i>Dev Setup
-                    </button>
-                    <button id="db-setup-tab" onclick="showTab('db-setup')" 
-                            class="whitespace-nowrap py-4 px-4 sm:px-6 border-b-2 font-medium text-xs sm:text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 transition duration-200">
-                        <i class="fas fa-database mr-1 sm:mr-2"></i>DB Setup
-                    </button>
-                    <button id="deploy-setup-tab" onclick="showTab('deploy-setup')" 
-                            class="whitespace-nowrap py-4 px-4 sm:px-6 border-b-2 font-medium text-xs sm:text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 transition duration-200">
-                        <i class="fas fa-rocket mr-1 sm:mr-2"></i>Deploy Setup
-                    </button>
-                    <button id="uwsgi-server-tab" onclick="showTab('uwsgi-server')" 
-                            class="whitespace-nowrap py-4 px-4 sm:px-6 border-b-2 font-medium text-xs sm:text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 transition duration-200">
-                        <i class="fas fa-server mr-1 sm:mr-2"></i>uWSGI Config
-                    </button>
-                    <button id="service-config-tab" onclick="showTab('service-config')" 
-                            class="whitespace-nowrap py-4 px-4 sm:px-6 border-b-2 font-medium text-xs sm:text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 transition duration-200">
-                        <i class="fas fa-cogs mr-1 sm:mr-2"></i>Service Config
-                    </button>
-                    <button id="nginx-config-tab" onclick="showTab('nginx-config')" 
-                            class="whitespace-nowrap py-4 px-4 sm:px-6 border-b-2 font-medium text-xs sm:text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 transition duration-200">
-                        <i class="fas fa-globe mr-1 sm:mr-2"></i>Nginx Config
-                    </button>
+                    <template x-for="tab in tabs" :key="tab.id">
+                        <button @click="activeTab = tab.id" 
+                                :class="activeTab === tab.id ? 
+                                    'border-blue-500 text-blue-600 bg-white shadow-sm' : 
+                                    'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 hover:bg-gray-100'"
+                                class="whitespace-nowrap py-4 px-4 sm:px-6 border-b-2 font-medium text-xs sm:text-sm tab-transition flex items-center">
+                            <i :class="tab.icon" class="mr-1 sm:mr-2"></i>
+                            <span class="hidden sm:inline" x-text="tab.fullName"></span>
+                            <span class="sm:hidden" x-text="tab.shortName"></span>
+                        </button>
+                    </template>
                 </nav>
             </div>
 
             <!-- Tab Contents -->
-            <div class="p-4 sm:p-6">
+            <div class="p-6 sm:p-8">
                 <!-- SSH Key Management Tab -->
-                <div id="ssh-key-content" class="tab-content">
-                    <div class="space-y-6">
-                        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-2 sm:space-y-0">
-                            <h3 class="text-xl font-semibold text-gray-800">SSH Key Management</h3>
-                            <button onclick="copyToClipboard('ssh-key-code')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition duration-200">
-                                <i class="fas fa-copy mr-2"></i>Copy Code
-                            </button>
+                <div x-show="activeTab === 'ssh-key'" 
+                     x-transition:enter="transition ease-out duration-300"
+                     x-transition:enter-start="opacity-0 transform translate-x-4"
+                     x-transition:enter-end="opacity-100 transform translate-x-0"
+                     class="space-y-6">
+                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-3 sm:space-y-0">
+                        <h3 class="text-2xl font-bold text-gray-800 flex items-center">
+                            <i class="fas fa-key mr-3 text-yellow-600"></i>SSH Key Management
+                        </h3>
+                        <button @click="copyToClipboard('ssh-key-code')" 
+                                class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center">
+                            <i class="fas fa-copy mr-2"></i>Copy Code
+                        </button>
+                    </div>
+                    <div class="code-block rounded-xl overflow-hidden shadow-lg">
+                        <div class="bg-gray-800 px-6 py-3 text-gray-300 font-medium flex items-center">
+                            <i class="fas fa-terminal mr-3 text-green-400"></i>SSH Key Setup Commands
                         </div>
-                        <div class="bg-gray-900 rounded-lg overflow-hidden">
-                            <div class="bg-gray-800 px-4 py-2 text-gray-300 text-sm font-medium">
-                                <i class="fas fa-terminal mr-2"></i>SSH Key Setup Commands
-                            </div>
-                            <pre id="ssh-key-code" class="text-green-400 p-4 overflow-x-auto text-sm"><code># Generate SSH key for {{ project.project_name }}
+                        <pre id="ssh-key-code" class="text-green-400 p-6 overflow-x-auto text-sm leading-relaxed"><code># Generate SSH key for {{ project.project_name }}
 
 🔑 1. Generate Project-Specific SSH Key
 ssh-keygen -t rsa -b 4096 -f ~/.ssh/{{ project.project_name }}
 
-# Add SSH key to ssh-agent
+🔐 2. Start SSH Agent
 eval "$(ssh-agent -s)"
-
 
 ➕ 3. Add Your New SSH Key to the Agent
 ssh-add ~/.ssh/{{ project.project_name }}
@@ -233,119 +226,87 @@ Host {{ project.project_name }}.github.com
     IdentityFile ~/.ssh/{{ project.project_name }}
 
 🔄 7. Clone Your Repository Using the Configured Host
- cd /opt
- git clone --branch main --single-branch git@{{ project.project_name }}.github.com:{{ project.github_username }}/{{ project.project_name }}.git
+cd /opt
+git clone --branch main --single-branch git@{{ project.project_name }}.github.com:{{ project.github_username }}/{{ project.project_name }}.git
 
 🔧 8. Project Setup & Configuration
-
- cd {{ project.project_name }}
-
- python3 -m venv venv
- 
- pip install -r requirements.txt
-
- python manage.py migrate
-
- python manage.py 
- 
- python manage.py runserver 0.0.0.0:8000
-
-
-
-
-</code></pre>
-                        </div>
+cd {{ project.project_name }}
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py createsuperuser
+python manage.py runserver 0.0.0.0:8000</code></pre>
                     </div>
                 </div>
 
                 <!-- Dev Setup Tab -->
-                <div id="dev-setup-content" class="tab-content hidden">
-                    <div class="space-y-6">
-                        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-2 sm:space-y-0">
-                            <h3 class="text-xl font-semibold text-gray-800">Development Environment Setup</h3>
-                            <button onclick="copyToClipboard('dev-setup-code')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition duration-200">
-                                <i class="fas fa-copy mr-2"></i>Copy Code
-                            </button>
+                <div x-show="activeTab === 'dev-setup'" 
+                     x-transition:enter="transition ease-out duration-300"
+                     x-transition:enter-start="opacity-0 transform translate-x-4"
+                     x-transition:enter-end="opacity-100 transform translate-x-0"
+                     class="space-y-6">
+                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-3 sm:space-y-0">
+                        <h3 class="text-2xl font-bold text-gray-800 flex items-center">
+                            <i class="fas fa-code mr-3 text-purple-600"></i>Development Environment Setup
+                        </h3>
+                        <button @click="copyToClipboard('dev-setup-code')" 
+                                class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center">
+                            <i class="fas fa-copy mr-2"></i>Copy Code
+                        </button>
+                    </div>
+                    <div class="code-block rounded-xl overflow-hidden shadow-lg">
+                        <div class="bg-gray-800 px-6 py-3 text-gray-300 font-medium flex items-center">
+                            <i class="fas fa-code mr-3 text-purple-400"></i>Development Setup Commands
                         </div>
-                        <div class="bg-gray-900 rounded-lg overflow-hidden">
-                            <div class="bg-gray-800 px-4 py-2 text-gray-300 text-sm font-medium">
-                                <i class="fas fa-code mr-2"></i>Development Setup Commands
-                            </div>
-                            <pre id="dev-setup-code" class="text-green-400 p-4 overflow-x-auto text-sm"><code># Update system packages
-sudo apt update && sudo apt upgrade -y
+                        <pre id="dev-setup-code" class="text-green-400 p-6 overflow-x-auto text-sm leading-relaxed"><code># Development Environment Setup
 
-# Install Python and pip
-sudo apt install python3 python3-pip python3-venv python3-dev -y
-
-# Install Git and other essentials
-sudo apt install git curl wget build-essential -y
-
-# Install Node.js (if needed for frontend)
-curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-sudo apt-get install -y nodejs
-
-# Clone project repository
-git clone git@github.com:{{ project.github_username }}/{{ project.project_name }}.git
-cd {{ project.project_name }}
-
-# Create virtual environment
-python3 -m venv venv
-source venv/bin/activate
-
-# Upgrade pip
+🔧 1. Upgrade pip and install dependencies
 pip install --upgrade pip
-
-# Install dependencies
 pip install -r requirements.txt
 
-# Install additional development tools
-pip install django-debug-toolbar
-pip install django-extensions
-pip install ipython
+⚙️ 2. Setting up local Django settings
+cp examples/local_settings.example {{ project.project_name }}/local_settings.py
+nano {{ project.project_name }}/local_settings.py  # Configure your local settings
 
-# Set up environment variables
-cp .env.example .env
-nano .env
+📁 3. Creating log directory
+mkdir -p logs
 
-# Run initial migrations
-python manage.py makemigrations
-python manage.py migrate
-
-# Create superuser
-python manage.py createsuperuser
-
-# Collect static files
-python manage.py collectstatic
-
-# Run development server
+🚀 4. Testing initial Django run
 python manage.py runserver 0.0.0.0:8000</code></pre>
-                        </div>
                     </div>
                 </div>
 
                 <!-- DB Setup Tab -->
-                <div id="db-setup-content" class="tab-content hidden">
-                    <div class="space-y-6">
-                        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-2 sm:space-y-0">
-                            <h3 class="text-xl font-semibold text-gray-800">Database Setup</h3>
-                            <button onclick="copyToClipboard('db-setup-code')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition duration-200">
-                                <i class="fas fa-copy mr-2"></i>Copy Code
-                            </button>
+                <div x-show="activeTab === 'db-setup'" 
+                     x-transition:enter="transition ease-out duration-300"
+                     x-transition:enter-start="opacity-0 transform translate-x-4"
+                     x-transition:enter-end="opacity-100 transform translate-x-0"
+                     class="space-y-6">
+                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-3 sm:space-y-0">
+                        <h3 class="text-2xl font-bold text-gray-800 flex items-center">
+                            <i class="fas fa-database mr-3 text-green-600"></i>Database Setup
+                        </h3>
+                        <button @click="copyToClipboard('db-setup-code')" 
+                                class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center">
+                            <i class="fas fa-copy mr-2"></i>Copy Code
+                        </button>
+                    </div>
+                    <div class="code-block rounded-xl overflow-hidden shadow-lg">
+                        <div class="bg-gray-800 px-6 py-3 text-gray-300 font-medium flex items-center">
+                            <i class="fas fa-database mr-3 text-green-400"></i>PostgreSQL Database Configuration
                         </div>
-                        <div class="bg-gray-900 rounded-lg overflow-hidden">
-                            <div class="bg-gray-800 px-4 py-2 text-gray-300 text-sm font-medium">
-                                <i class="fas fa-database mr-2"></i>PostgreSQL Database Configuration
-                            </div>
-                            <pre id="db-setup-code" class="text-green-400 p-4 overflow-x-auto text-sm"><code>
-🗄️ Creating PostgreSQL database...
+                        <pre id="db-setup-code" class="text-green-400 p-6 overflow-x-auto text-sm leading-relaxed"><code># Database Setup
+
+🗄️ 1. Creating PostgreSQL database
 sudo -u postgres psql 
 CREATE DATABASE {{ project.database_name }};
 \q
 
-# Install psycopg2 for Django
+🔧 2. Install psycopg2 for Django
 pip install psycopg2-binary==2.9.10
 
-# For PostgreSQL database (comment it if not needed)
+⚙️ 3. Database Configuration (add to local_settings.py)
 DB_CONFIG = {
     'ENGINE': os.getenv('DB_ENGINE', 'django.db.backends.postgresql'),
     'HOST': os.getenv('DB_HOST', '127.0.0.1'),
@@ -355,147 +316,109 @@ DB_CONFIG = {
     'PASSWORD': os.getenv('DB_PASS', '<db_password>')
 }
 
-# Got to Project file
+🚀 4. Navigate to project and activate environment
 cd /opt/{{ project.project_name }}/
-
 source venv/bin/activate
 
-
-
-# Run migrations
+📊 5. Run migrations
 python manage.py makemigrations
-
 python manage.py migrate
 
-# Create superuser
+👤 6. Create superuser
 python manage.py createsuperuser
 
-# Backup database (optional)
+💾 7. Backup database (optional)
 pg_dump {{ project.database_name }} > {{ project.database_name }}_backup.sql
 
 # Restore database (if needed)
 # psql {{ project.database_name }} < {{ project.database_name }}_backup.sql</code></pre>
-                        </div>
                     </div>
                 </div>
 
                 <!-- Deploy Setup Tab -->
-                <div id="deploy-setup-content" class="tab-content hidden">
-                    <div class="space-y-6">
-                        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-2 sm:space-y-0">
-                            <h3 class="text-xl font-semibold text-gray-800">Production Deployment Setup</h3>
-                            <button onclick="copyToClipboard('deploy-setup-code')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition duration-200">
-                                <i class="fas fa-copy mr-2"></i>Copy Code
-                            </button>
+                <div x-show="activeTab === 'deploy-setup'" 
+                     x-transition:enter="transition ease-out duration-300"
+                     x-transition:enter-start="opacity-0 transform translate-x-4"
+                     x-transition:enter-end="opacity-100 transform translate-x-0"
+                     class="space-y-6">
+                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-3 sm:space-y-0">
+                        <h3 class="text-2xl font-bold text-gray-800 flex items-center">
+                            <i class="fas fa-rocket mr-3 text-red-600"></i>Production Deployment Setup
+                        </h3>
+                        <button @click="copyToClipboard('deploy-setup-code')" 
+                                class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center">
+                            <i class="fas fa-copy mr-2"></i>Copy Code
+                        </button>
+                    </div>
+                    <div class="code-block rounded-xl overflow-hidden shadow-lg">
+                        <div class="bg-gray-800 px-6 py-3 text-gray-300 font-medium flex items-center">
+                            <i class="fas fa-rocket mr-3 text-red-400"></i>Production Deployment Commands
                         </div>
-                        <div class="bg-gray-900 rounded-lg overflow-hidden">
-                            <div class="bg-gray-800 px-4 py-2 text-gray-300 text-sm font-medium">
-                                <i class="fas fa-rocket mr-2"></i>Production Deployment Commands
-                            </div>
-                            <pre id="deploy-setup-code" class="text-green-400 p-4 overflow-x-auto text-sm"><code># Install Nginx
-sudo apt install nginx -y
+                        <pre id="deploy-setup-code" class="text-green-400 p-6 overflow-x-auto text-sm leading-relaxed"><code># Production Deployment Setup
 
-# Create project directory structure
-sudo mkdir -p /opt/{{ project.project_name }}
-sudo mkdir -p /opt/{{ project.project_name }}/logs
-sudo mkdir -p /opt/{{ project.project_name }}/static
-sudo mkdir -p /opt/{{ project.project_name }}/media
-sudo mkdir -p /opt/{{ project.project_name }}/uwsgi
+📂 1. Setting up uWSGI configuration
+mkdir -p uwsgi
+cp examples/uwsgi.example uwsgi/uwsgi.ini
+cat uwsgi/uwsgi.ini
 
-# Set ownership
-sudo chown -R {{ project.github_username }}:{{ project.github_username }} /opt/{{ project.project_name }}
+🛠️ 2. Setting up systemd service
+sudo cp /opt/{{ project.project_name }}/examples/service.example /etc/systemd/system/{{ project.project_name }}.service
+sudo systemctl daemon-reload
+sudo systemctl start {{ project.project_name }}.service
+sudo systemctl enable {{ project.project_name }}.service
+sudo systemctl status {{ project.project_name }}.service
 
-# Clone project to production directory
-cd /opt/{{ project.project_name }}
-git clone git@github.com:{{ project.github_username }}/{{ project.project_name }}.git .
+🌐 3. Configuring Nginx
+cd /etc/nginx/conf.d/
+sudo cp /opt/{{ project.project_name }}/examples/nginx.example {{ project.domain_name }}.conf
+sudo nginx -t
+sudo systemctl restart nginx
 
-# Set up virtual environment
-python3 -m venv venv
-source venv/bin/activate
+🔁 4. Restarting service
+cd /opt/{{ project.project_name }}/
+sudo systemctl restart {{ project.project_name }}.service
 
-# Install production dependencies
-pip install --upgrade pip
-pip install -r requirements.txt
-pip install gunicorn uwsgi
-
-# Set production environment variables
-cp .env.example .env.production
-nano .env.production
-
-# Configure Django settings for production
-export DJANGO_SETTINGS_MODULE={{ project.project_name }}.settings.production
-
-# Run migrations and collect static files
-python manage.py migrate --settings={{ project.project_name }}.settings.production
-python manage.py collectstatic --noinput --settings={{ project.project_name }}.settings.production
-
-# Create log files
-touch /opt/{{ project.project_name }}/logs/access.log
-touch /opt/{{ project.project_name }}/logs/error.log
-
-# Set permissions
-sudo chown -R {{ project.github_username }}:www-data /opt/{{ project.project_name }}
-sudo chmod -R 755 /opt/{{ project.project_name }}
-
-# Test Gunicorn
-gunicorn --bind 0.0.0.0:8000 {{ project.project_name }}.wsgi:application
-
-# Set up SSL with Let's Encrypt
-sudo apt install certbot python3-certbot-nginx -y
-sudo certbot --nginx -d {{ project.domain_name }}
-
-# Test deployment
-curl -I https://{{ project.domain_name }}</code></pre>
-                        </div>
+✅ Deployment setup complete! 🚀</code></pre>
                     </div>
                 </div>
 
                 <!-- uWSGI Server Tab -->
-                <div id="uwsgi-server-content" class="tab-content hidden">
-                    <div class="space-y-6">
-                        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-2 sm:space-y-0">
-                            <h3 class="text-xl font-semibold text-gray-800">uWSGI Configuration</h3>
-                            <button onclick="copyToClipboard('uwsgi-server-code')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition duration-200">
-                                <i class="fas fa-copy mr-2"></i>Copy Code
-                            </button>
+                <div x-show="activeTab === 'uwsgi-server'" 
+                     x-transition:enter="transition ease-out duration-300"
+                     x-transition:enter-start="opacity-0 transform translate-x-4"
+                     x-transition:enter-end="opacity-100 transform translate-x-0"
+                     class="space-y-6">
+                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-3 sm:space-y-0">
+                        <h3 class="text-2xl font-bold text-gray-800 flex items-center">
+                            <i class="fas fa-server mr-3 text-indigo-600"></i>uWSGI Configuration
+                        </h3>
+                        <button @click="copyToClipboard('uwsgi-server-code')" 
+                                class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center">
+                            <i class="fas fa-copy mr-2"></i>Copy Code
+                        </button>
+                    </div>
+                    <div class="code-block rounded-xl overflow-hidden shadow-lg">
+                        <div class="bg-gray-800 px-6 py-3 text-gray-300 font-medium flex items-center">
+                            <i class="fas fa-server mr-3 text-indigo-400"></i>uWSGI Configuration File
                         </div>
-                        <div class="bg-gray-900 rounded-lg overflow-hidden">
-                            <div class="bg-gray-800 px-4 py-2 text-gray-300 text-sm font-medium">
-                                <i class="fas fa-server mr-2"></i>uWSGI Configuration File
-                            </div>
-                            <pre id="uwsgi-server-code" class="text-green-400 p-4 overflow-x-auto text-sm"><code># Create uWSGI configuration file
-nano /opt/{{ project.project_name }}/uwsgi/uwsgi.ini
-
-# uWSGI Configuration Content:
-[uwsgi]
-# https://docs.djangoproject.com/en/4.2/howto/deployment/wsgi/uwsgi/
-
-# the base directory (full path)
+                        <pre id="uwsgi-server-code" class="text-green-400 p-6 overflow-x-auto text-sm leading-relaxed"><code>[uwsgi]
+# Django-related settings
 chdir           = /opt/{{ project.project_name }}
-
 # Django's wsgi file
-module          = {{ project.project_name }}.wsgi
-
+module          = {{ project.project_name }}.wsgi:application
 # the virtualenv (full path)
 home            = /opt/{{ project.project_name }}/venv
-
 # process-related settings
 master          = true
-
 # maximum number of worker processes
 processes       = 8
 threads         = 2
 enable-threads  = True
-
 # the socket (use the full path to be safe)
 socket          = /opt/{{ project.project_name }}/uwsgi/uwsgi.sock
-
-# ... with appropriate permissions - may be needed
 chmod-socket    = 666
-
 # clear environment on exit
 vacuum          = true
-
 # respawning
 harakiri        = 30
 max-requests    = 5000
@@ -503,55 +426,35 @@ max-requests    = 5000
 # increase buffer size
 buffer-size     = 65535
 listen          = 4096
-
-# logging
-logto           = /opt/{{ project.project_name }}/logs/uwsgi.log
-log-maxsize     = 50000000
-log-backupname  = /opt/{{ project.project_name }}/logs/uwsgi.log.old
-
-# environment variables
-env             = DJANGO_SETTINGS_MODULE={{ project.project_name }}.settings.production
-
-# uid and gid
-uid             = {{ project.github_username }}
-gid             = www-data
-
-# stats
-stats           = /opt/{{ project.project_name }}/uwsgi/stats.sock
-
-# Install uWSGI
-pip install uwsgi
-
-# Test uWSGI configuration
-uwsgi --ini /opt/{{ project.project_name }}/uwsgi/uwsgi.ini</code></pre>
-                        </div>
                     </div>
                 </div>
 
                 <!-- Service Config Tab -->
-                <div id="service-config-content" class="tab-content hidden">
-                    <div class="space-y-6">
-                        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-2 sm:space-y-0">
-                            <h3 class="text-xl font-semibold text-gray-800">Systemd Service Configuration</h3>
-                            <button onclick="copyToClipboard('service-config-code')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition duration-200">
-                                <i class="fas fa-copy mr-2"></i>Copy Code
-                            </button>
+                <div x-show="activeTab === 'service-config'" 
+                     x-transition:enter="transition ease-out duration-300"
+                     x-transition:enter-start="opacity-0 transform translate-x-4"
+                     x-transition:enter-end="opacity-100 transform translate-x-0"
+                     class="space-y-6">
+                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-3 sm:space-y-0">
+                        <h3 class="text-2xl font-bold text-gray-800 flex items-center">
+                            <i class="fas fa-cogs mr-3 text-orange-600"></i>Systemd Service Configuration
+                        </h3>
+                        <button @click="copyToClipboard('service-config-code')" 
+                                class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center">
+                            <i class="fas fa-copy mr-2"></i>Copy Code
+                        </button>
+                    </div>
+                    <div class="code-block rounded-xl overflow-hidden shadow-lg">
+                        <div class="bg-gray-800 px-6 py-3 text-gray-300 font-medium flex items-center">
+                            <i class="fas fa-cogs mr-3 text-orange-400"></i>Systemd Service File
                         </div>
-                        <div class="bg-gray-900 rounded-lg overflow-hidden">
-                            <div class="bg-gray-800 px-4 py-2 text-gray-300 text-sm font-medium">
-                                <i class="fas fa-cogs mr-2"></i>Systemd Service File
-                            </div>
-                            <pre id="service-config-code" class="text-green-400 p-4 overflow-x-auto text-sm"><code># Create systemd service file
-sudo nano /etc/systemd/system/{{ project.project_name }}.service
-
-# Service file content:
-[Unit]
-Description={{ project.project_name }}-uWSGI-instance
-After=network.target postgresql.service
+                        <pre id="service-config-code" class="text-green-400 p-6 overflow-x-auto text-sm leading-relaxed"><code>[Unit]
+Description=uWSGI instance to serve {{ project.project_name }}
+After=network.target
 
 [Service]
-User={{ project.github_username }}
-Group=www-data
+User=root
+Group=nginx
 WorkingDirectory=/opt/{{ project.project_name }}
 Environment="PATH=/opt/{{ project.project_name }}/venv/bin"
 ExecStart=/opt/{{ project.project_name }}/venv/bin/uwsgi --ini /opt/{{ project.project_name }}/uwsgi/uwsgi.ini
@@ -561,105 +464,149 @@ Type=notify
 NotifyAccess=all
 
 [Install]
-WantedBy=multi-user.target
-
-# Reload systemd daemon
-sudo systemctl daemon-reload
-
-# Enable service to start on boot
-sudo systemctl enable {{ project.project_name }}
-
-# Start the service
-sudo systemctl start {{ project.project_name }}
-
-# Check service status
-sudo systemctl status {{ project.project_name }}
-
-# View service logs
-sudo journalctl -u {{ project.project_name }} -f
-
-# Restart service (when needed)
-sudo systemctl restart {{ project.project_name }}
-
-# Stop service
-sudo systemctl stop {{ project.project_name }}
-
-# Disable service
-sudo systemctl disable {{ project.project_name }}</code></pre>
-                        </div>
+WantedBy=multi-user.target</code></pre>
                     </div>
                 </div>
 
                 <!-- Nginx Config Tab -->
-                <div id="nginx-config-content" class="tab-content hidden">
-                    <div class="space-y-6">
-                        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-2 sm:space-y-0">
-                            <h3 class="text-xl font-semibold text-gray-800">Nginx Configuration</h3>
-                            <button onclick="copyToClipboard('nginx-config-code')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition duration-200">
-                                <i class="fas fa-copy mr-2"></i>Copy Code
-                            </button>
+                <div x-show="activeTab === 'nginx-config'" 
+                     x-transition:enter="transition ease-out duration-300"
+                     x-transition:enter-start="opacity-0 transform translate-x-4"
+                     x-transition:enter-end="opacity-100 transform translate-x-0"
+                     class="space-y-6">
+                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-3 sm:space-y-0">
+                        <h3 class="text-2xl font-bold text-gray-800 flex items-center">
+                            <i class="fas fa-globe mr-3 text-blue-600"></i>Nginx Configuration
+                        </h3>
+                        <button @click="copyToClipboard('nginx-config-code')" 
+                                class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center">
+                            <i class="fas fa-copy mr-2"></i>Copy Code
+                        </button>
+                    </div>
+                    <div class="code-block rounded-xl overflow-hidden shadow-lg">
+                        <div class="bg-gray-800 px-6 py-3 text-gray-300 font-medium flex items-center">
+                            <i class="fas fa-globe mr-3 text-blue-400"></i>Nginx Server Block
                         </div>
-                        <div class="bg-gray-900 rounded-lg overflow-hidden">
-                            <div class="bg-gray-800 px-4 py-2 text-gray-300 text-sm font-medium">
-                                <i class="fas fa-globe mr-2"></i>Nginx Server Configuration
-                            </div>
-                            <pre id="nginx-config-code" class="text-green-400 p-4 overflow-x-auto text-sm">
-
-# Nginx configuration content:
-<code>
-upstream uwsgi_{{ project.project_name }} {
+                        <pre id="nginx-config-code" class="text-green-400 p-6 overflow-x-auto text-sm leading-relaxed"><code>upstream uwsgi_{{ project.project_name }} {
         server unix:/opt/{{ project.project_name }}/uwsgi/uwsgi.sock;
 }
-
 server {
-        listen 80;
-        server_name {{ project.project_name }}.com www.{{ project.project_name }}.com;
+    listen 80;
+    server_name {{ project.domain_name }} www.{{ project.domain_name }};
+    
+    access_log /opt/{{ project.project_name }}/logs/access.log;
+    error_log /opt/{{ project.project_name }}/logs/error.log;
 
-        access_log /opt/{{ project.project_name }}/logs/access.log;
-        error_log /opt/{{ project.project_name }}/logs/error.log;
-
-        charset utf-8;
-        client_max_body_size 16M;
-
-        location /static {
-                alias /opt/{{ project.project_name }}/static;
-        }
-
-        location /media {
-                alias /opt/{{ project.project_name }}/media;
-        }
-
-        location / {
-                uwsgi_pass uwsgi_{{ project.project_name }};
-                include uwsgi_params;
-                uwsgi_read_timeout 300s;
-                uwsgi_send_timeout 300s;
-        }
-}
-</code>
-🌐Configuring Nginx...
-cd /etc/nginx/conf.d/
-
-sudo cp /opt/{{ project.project_name }}/examples/nginx.example en2bn.com.conf
-
-# Test Nginx configuration
-sudo nginx -t
-
-# Restart Nginx
-sudo systemctl restart nginx
-
-# Enable Nginx to start on boot
-sudo systemctl enable nginx
-
-🔁 Restarting service...
-cd /opt/{{ project.project_name }}/
-sudo systemctl restart {{ project.project_name }}.service
-</pre>
-                        </div>
+    charset utf-8;
+    client_max_body_size 16M;
+    
+    location /static/ {
+        root /opt/{{ project.project_name }};
+    }
+    
+    location /media/ {
+        root /opt/{{ project.project_name }};
+    }
+    
+    location / {
+        uwsgi_pass uwsgi_{{ project.project_name }};
+        include uwsgi_params;
+        uwsgi_read_timeout 300s;
+        uwsgi_send_timeout 300s;
+    }
+    
+    # Security headers
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "no-referrer-when-downgrade" always;
+    add_header Content-Security-Policy "default-src 'self' http: https: data: blob: 'unsafe-inline'" always;
+}</code></pre>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Success Toast -->
+    <div x-show="showToast" 
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0 transform translate-y-2"
+         x-transition:enter-end="opacity-100 transform translate-y-0"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100 transform translate-y-0"
+         x-transition:leave-end="opacity-0 transform translate-y-2"
+         class="fixed bottom-4 right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg flex items-center z-50"
+         x-cloak>
+        <i class="fas fa-check-circle mr-2"></i>
+        <span>Code copied to clipboard!</span>
+    </div>
+
+    <script>
+        function serverCodeApp() {
+            return {
+                activeTab: 'ssh-key',
+                mobileMenuOpen: false,
+                showToast: false,
+                tabs: [
+                    { id: 'ssh-key', fullName: 'SSH Key Management', shortName: 'SSH', icon: 'fas fa-key' },
+                    { id: 'dev-setup', fullName: 'Dev Setup', shortName: 'Dev', icon: 'fas fa-code' },
+                    { id: 'db-setup', fullName: 'DB Setup', shortName: 'DB', icon: 'fas fa-database' },
+                    { id: 'deploy-setup', fullName: 'Deploy Setup', shortName: 'Deploy', icon: 'fas fa-rocket' },
+                    { id: 'uwsgi-server', fullName: 'uWSGI Config', shortName: 'uWSGI', icon: 'fas fa-server' },
+                    { id: 'service-config', fullName: 'Service Config', shortName: 'Service', icon: 'fas fa-cogs' },
+                    { id: 'nginx-config', fullName: 'Nginx Config', shortName: 'Nginx', icon: 'fas fa-globe' }
+                ],
+                
+                copyToClipboard(elementId) {
+                    const element = document.getElementById(elementId);
+                    if (!element) return;
+                    
+                    const text = element.textContent;
+                    
+                    if (navigator.clipboard && window.isSecureContext) {
+                        navigator.clipboard.writeText(text).then(() => {
+                            this.showSuccessToast();
+                        }).catch(() => {
+                            this.fallbackCopy(text);
+                        });
+                    } else {
+                        this.fallbackCopy(text);
+                    }
+                },
+                
+                fallbackCopy(text) {
+                    const textArea = document.createElement('textarea');
+                    textArea.value = text;
+                    textArea.style.position = 'fixed';
+                    textArea.style.left = '-999999px';
+                    textArea.style.top = '-999999px';
+                    document.body.appendChild(textArea);
+                    textArea.focus();
+                    textArea.select();
+                    
+                    try {
+                        document.execCommand('copy');
+                        this.showSuccessToast();
+                    } catch (err) {
+                        console.error('Failed to copy: ', err);
+                    }
+                    
+                    document.body.removeChild(textArea);
+                },
+                
+                showSuccessToast() {
+                    this.showToast = true;
+                    setTimeout(() => {
+                        this.showToast = false;
+                    }, 3000);
+                }
+            }
+        }
+    </script>
+
+    <style>
+        [x-cloak] { display: none !important; }
+    </style>
 </body>
 </html>

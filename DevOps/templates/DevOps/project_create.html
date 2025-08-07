@@ -1,36 +1,28 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create New Project - DevOps</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-</head>
-<body class="bg-gray-100 min-h-screen">
-    <!-- Navigation -->
-    <nav class="bg-blue-600 text-white p-4">
-        <div class="container mx-auto flex justify-between items-center">
-            <h1 class="text-xl font-bold">
-                <i class="fas fa-server mr-2"></i>DevOps Dashboard
-            </h1>
-            <div class="space-x-4">
-                <a href="{% url 'devops:dashboard' %}" class="hover:text-blue-200">
-                    <i class="fas fa-home mr-1"></i>Dashboard
-                </a>
-                <a href="{% url 'devops:project_list' %}" class="hover:text-blue-200">
-                    <i class="fas fa-list mr-1"></i>Projects
-                </a>
-                <a href="{% url 'profile' %}" class="hover:text-blue-200">
-                    <i class="fas fa-user mr-1"></i>Profile
-                </a>
-                <a href="{% url 'logout' %}" class="hover:text-blue-200">
-                    <i class="fas fa-sign-out-alt mr-1"></i>Logout
-                </a>
-            </div>
-        </div>
-    </nav>
+{% extends 'base.html' %}
+{% load static %}
 
+{% block title %}Create New Project - DevOps{% endblock %}
+
+
+{% block breadcrumb %}
+<nav class="bg-white shadow-sm px-3 sm:px-4 py-2 mb-4 lg:ps-24">
+    <ol class="list-none p-0 flex flex-wrap items-center text-sm">
+        <li class="flex items-center">
+            <a href="{% url 'devops:project_list' %}" class="text-blue-600 hover:text-blue-800">
+                <i class="fas fa-home mr-1"></i>Projects
+            </a>
+        </li>
+        <li class="flex items-center mx-2">
+            <i class="fas fa-chevron-right text-gray-400 text-xs"></i>
+        </li>
+        <li class="text-gray-600 truncate">
+            Create New Project
+        </li>
+    </ol>
+</nav>
+{% endblock %}
+{% block content %}
+<div class="bg-gray-100 min-h-screen">
     <!-- Main Content -->
     <div class="container mx-auto px-4 py-8">
         <!-- Header -->
@@ -195,83 +187,106 @@
 
     <!-- JavaScript for enhanced UX -->
     <script>
-        // Character counter for project details
-        const projectDetails = document.getElementById('{{ form.project_details.id_for_label }}');
-        const charCount = document.getElementById('charCount');
-        
-        if (projectDetails && charCount) {
-            projectDetails.addEventListener('input', function() {
-                const count = this.value.length;
-                charCount.textContent = `${count} characters`;
-                
-                if (count > 500) {
-                    charCount.classList.add('text-yellow-600');
-                    charCount.classList.remove('text-gray-400');
-                } else {
-                    charCount.classList.add('text-gray-400');
-                    charCount.classList.remove('text-yellow-600');
-                }
-            });
-        }
-
-        // Auto-generate database name from project name
-        const projectName = document.getElementById('{{ form.project_name.id_for_label }}');
-        const databaseName = document.getElementById('{{ form.database_name.id_for_label }}');
-        
-        if (projectName && databaseName) {
-            projectName.addEventListener('input', function() {
-                if (!databaseName.value) {
-                    // Generate database name from project name
-                    let dbName = this.value
-                        .toLowerCase()
-                        .replace(/[^a-z0-9]/g, '_')
-                        .replace(/_+/g, '_')
-                        .replace(/^_|_$/g, '');
+        document.addEventListener('DOMContentLoaded', function() {
+            // Character counter for project details
+            const projectDetails = document.getElementById('{{ form.project_details.id_for_label }}');
+            const charCount = document.getElementById('charCount');
+            
+            if (projectDetails && charCount) {
+                const updateCharCount = () => {
+                    const count = projectDetails.value.length;
+                    charCount.textContent = `${count} characters`;
                     
-                    if (dbName && !dbName.match(/^[0-9]/)) {
-                        databaseName.value = dbName;
+                    if (count > 500) {
+                        charCount.classList.add('text-yellow-600');
+                        charCount.classList.remove('text-gray-400');
+                    } else {
+                        charCount.classList.add('text-gray-400');
+                        charCount.classList.remove('text-yellow-600');
                     }
-                }
-            });
-        }
+                };
+                
+                projectDetails.addEventListener('input', updateCharCount);
+                updateCharCount(); // Initial count
+            }
 
-        // GitHub link validation
-        const githubUsername = document.getElementById('{{ form.github_username.id_for_label }}');
-        const githubLink = document.getElementById('{{ form.project_github_link.id_for_label }}');
-        
-        if (githubUsername && githubLink) {
-            githubUsername.addEventListener('input', function() {
-                const username = this.value;
-                if (username && !githubLink.value) {
-                    githubLink.placeholder = `https://github.com/${username}/repository-name`;
-                }
-            });
-        }
+            // Auto-generate database name from project name
+            const projectName = document.getElementById('{{ form.project_name.id_for_label }}');
+            const databaseName = document.getElementById('{{ form.database_name.id_for_label }}');
+            
+            if (projectName && databaseName) {
+                projectName.addEventListener('input', function() {
+                    if (!databaseName.value) {
+                        let dbName = this.value
+                            .toLowerCase()
+                            .replace(/[^a-z0-9]/g, '_')
+                            .replace(/_+/g, '_')
+                            .replace(/^_|_$/g, '');
+                        
+                        if (dbName && !dbName.match(/^[0-9]/)) {
+                            databaseName.value = dbName;
+                        }
+                    }
+                });
+            }
 
-        // Form submission loading state
-        const form = document.getElementById('projectForm');
-        const submitBtn = document.getElementById('submitBtn');
-        
-        if (form && submitBtn) {
-            form.addEventListener('submit', function() {
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Creating Project...';
-            });
-        }
+            // GitHub link validation
+            const githubUsername = document.getElementById('{{ form.github_username.id_for_label }}');
+            const githubLink = document.getElementById('{{ form.project_github_link.id_for_label }}');
+            
+            if (githubUsername && githubLink) {
+                githubUsername.addEventListener('input', function() {
+                    const username = this.value.trim();
+                    if (username && !githubLink.value) {
+                        githubLink.placeholder = `https://github.com/${username}/repository-name`;
+                    }
+                });
+            }
 
-        // Real-time validation feedback
-        const inputs = form.querySelectorAll('input, textarea, select');
-        inputs.forEach(input => {
-            input.addEventListener('blur', function() {
-                if (this.value.trim()) {
-                    this.classList.add('border-green-300');
-                    this.classList.remove('border-gray-300', 'border-red-300');
-                } else if (this.hasAttribute('required')) {
-                    this.classList.add('border-red-300');
-                    this.classList.remove('border-gray-300', 'border-green-300');
-                }
+            // Form submission handling
+            const form = document.getElementById('projectForm');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            if (form && submitBtn) {
+                form.addEventListener('submit', function(e) {
+                    // Basic form validation
+                    const requiredFields = form.querySelectorAll('[required]');
+                    let isValid = true;
+                    
+                    requiredFields.forEach(field => {
+                        if (!field.value.trim()) {
+                            isValid = false;
+                            field.classList.add('border-red-300');
+                        }
+                    });
+
+                    if (!isValid) {
+                        e.preventDefault();
+                        return;
+                    }
+
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Creating Project...';
+                });
+            }
+
+            // Real-time validation feedback
+            const inputs = form.querySelectorAll('input, textarea, select');
+            inputs.forEach(input => {
+                input.addEventListener('blur', function() {
+                    if (this.value.trim()) {
+                        this.classList.add('border-green-300');
+                        this.classList.remove('border-gray-300', 'border-red-300');
+                    } else if (this.hasAttribute('required')) {
+                        this.classList.add('border-red-300');
+                        this.classList.remove('border-gray-300', 'border-green-300');
+                    }
+                });
+
+                // Add initial classes
+                input.classList.add('border', 'border-gray-300');
             });
         });
     </script>
-</body>
-</html>
+</div>
+{% endblock %}
