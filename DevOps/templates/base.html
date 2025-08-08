@@ -111,7 +111,7 @@
     <div className="min-h-screen w-full bg-white relative">
 
  
-    <!-- Loading Spinner -->
+    {% comment %} <!-- Loading Spinner -->
     <div x-show="loading" 
          x-transition:enter="transition ease-out duration-300"
          x-transition:enter-start="opacity-0"
@@ -124,7 +124,7 @@
             <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto"></div>
             <p class="mt-4 text-gray-600 font-medium">Loading...</p>
         </div>
-    </div>
+    </div> {% endcomment %}
 
     <!-- Navigation -->
     <nav class="bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-xl">
