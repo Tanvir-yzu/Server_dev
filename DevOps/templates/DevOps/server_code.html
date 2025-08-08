@@ -518,9 +518,85 @@ server {
 }</code></pre>
                     </div>
                 </div>
-            </div>
-        </div>
+<!-- Restart Server Tab -->
+<div x-show="activeTab === 'Restart Server'" 
+     x-transition:enter="transition ease-out duration-300"
+     x-transition:enter-start="opacity-0 transform translate-x-4"
+     x-transition:enter-end="opacity-100 transform translate-x-0"
+     class="space-y-6">
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-3 sm:space-y-0">
+        <h3 class="text-2xl font-bold text-gray-800 flex items-center">
+            <i class="fas fa-sync-alt mr-3 text-blue-600"></i>Restart Server Commands
+        </h3>
+        <button @click="copyToClipboard('restart-server-code')" 
+                class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center">
+            <i class="fas fa-copy mr-2"></i>Copy Code
+        </button>
     </div>
+    <div class="code-block rounded-xl overflow-hidden shadow-lg ">
+        <div class="bg-gray-800 px-6 py-3 text-gray-300 font-medium flex items-center">
+            <i class="fas fa-terminal mr-3 text-blue-400"></i>Server Restart Commands
+        </div>
+        <pre id="restart-server-code" class="text-green-400 p-6 overflow-x-auto text-sm leading-relaxed"><code># Server Restart Commands for {{ project.project_name }}
+
+📂 1. Navigate to Project Directory
+cd /opt/{{ project.project_name }}/
+
+📂 2. Activate Virtual Environment
+source venv/bin/activate
+
+📂 3. Pull Latest Code
+<div class="flex items-center space-x-2 text-green-400">
+    <i class="fas fa-sync-alt animate-spin"></i>
+    <span>git pull</span>
+</div>
+🔄 4. Restart uWSGI Service
+sudo systemctl restart {{ project.project_name }}.service
+</code></pre>
+    </div>
+</div>
+
+            <div>
+                
+            </div>
+
+            <!-- Requerment Tab -->
+<div x-show="activeTab === 'Requerment'" 
+     x-transition:enter="transition ease-out duration-300"
+     x-transition:enter-start="opacity-0 transform translate-x-4"
+     x-transition:enter-end="opacity-100 transform translate-x-0"
+     class="space-y-6">
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-3 sm:space-y-0">
+        <h3 class="text-2xl font-bold text-gray-800 flex items-center">
+            <i class="fas fa-list mr-3 text-blue-600"></i>Project Requirements
+        </h3>
+        <button @click="copyToClipboard('requerment-code')" 
+                class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center">
+            <i class="fas fa-copy mr-2"></i>Copy Code
+        </button>
+    </div>
+    <div class="code-block rounded-xl overflow-hidden shadow-lg">
+        <div class="bg-gray-800 px-6 py-3 text-gray-300 font-medium flex items-center">
+            <i class="fas fa-list mr-3 text-blue-400"></i>Project Requirements List
+        </div>
+        <pre id="requerment-code" class="text-green-400 p-6 overflow-x-auto text-sm leading-relaxed"><code># Project Requirements for {{ project.project_name }}
+
+📦 Django Dependencies
+Django==4.2.7
+pip install uwsgi
+🗄️ Database & Storage
+pip install psycopg2-binary==2.9.10
+</code></pre>
+    </div>
+</div>
+
+            </div>
+            
+        </div>
+        
+    </div>
+
+    
 
     <!-- Success Toast -->
     <div x-show="showToast" 
@@ -536,6 +612,8 @@ server {
         <span>Code copied to clipboard!</span>
     </div>
 
+    
+
     <script>
         function serverCodeApp() {
             return {
@@ -549,7 +627,10 @@ server {
                     { id: 'deploy-setup', fullName: 'Deploy Setup', shortName: 'Deploy', icon: 'fas fa-rocket' },
                     { id: 'uwsgi-server', fullName: 'uWSGI Config', shortName: 'uWSGI', icon: 'fas fa-server' },
                     { id: 'service-config', fullName: 'Service Config', shortName: 'Service', icon: 'fas fa-cogs' },
-                    { id: 'nginx-config', fullName: 'Nginx Config', shortName: 'Nginx', icon: 'fas fa-globe' }
+                    { id: 'nginx-config', fullName: 'Nginx Config', shortName: 'Nginx', icon: 'fas fa-globe' },
+                    { id: 'Restart Server', fullName: 'Restart Server', shortName: 'Restart', icon: 'fas fa-server' },
+                    { id: 'Requerment', fullName: 'Requerment', shortName: 'Requerment', icon: 'fas fa-list' },
+
                 ],
                 
                 copyToClipboard(elementId) {
