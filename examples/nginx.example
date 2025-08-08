@@ -1,29 +1,35 @@
-upstream uwsgi_Excel_tech {
-        server unix:/opt/Excel_tech/uwsgi/uwsgi.sock;
+upstream uwsgi_Server_dev {
+        server unix:/opt/Server_dev/uwsgi/uwsgi.sock;
 }
-
 server {
-        listen 80;
-        server_name exceltech.com.bd www.exceltech.com.bd;
+    listen 80;
+    server_name server.en2bn.com www.server.en2bn.com;
+    
+    access_log /opt/Server_dev/logs/access.log;
+    error_log /opt/Server_dev/logs/error.log;
 
-        access_log /opt/Excel_tech/logs/access.log;
-        error_log /opt/Excel_tech/logs/error.log;
-
-        charset utf-8;
-        client_max_body_size 16M;
-
-        location /static {
-                alias /opt/Excel_tech/static;
-        }
-
-        location /media {
-                alias /opt/Excel_tech/media;
-        }
-
-        location / {
-                uwsgi_pass uwsgi_Excel_tech;
-                include uwsgi_params;
-                uwsgi_read_timeout 300s;
-                uwsgi_send_timeout 300s;
-        }
+    charset utf-8;
+    client_max_body_size 16M;
+    
+    location /static/ {
+        root /opt/Server_dev;
+    }
+    
+    location /media/ {
+        root /opt/Server_dev;
+    }
+    
+    location / {
+        uwsgi_pass uwsgi_Server_dev;
+        include uwsgi_params;
+        uwsgi_read_timeout 300s;
+        uwsgi_send_timeout 300s;
+    }
+    
+    # Security headers
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "no-referrer-when-downgrade" always;
+    add_header Content-Security-Policy "default-src 'self' http: https: data: blob: 'unsafe-inline'" always;
 }

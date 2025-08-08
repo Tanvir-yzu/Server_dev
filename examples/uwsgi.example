@@ -1,36 +1,26 @@
 [uwsgi]
-# https://docs.djangoproject.com/en/3.1/howto/deployment/wsgi/uwsgi/
-
-# the base directory (full path)
-chdir           = /opt/Excel_tech
-
+# Django-related settings
+chdir           = /opt/Server_dev
 # Django's wsgi file
-module          = Excel_tech.wsgi
-
+module          = Server_dev.wsgi:application
 # the virtualenv (full path)
-home            = /opt/Excel_tech/venv
-
+home            = /opt/Server_dev/venv
 # process-related settings
 master          = true
-
 # maximum number of worker processes
 processes       = 8
 threads         = 2
 enable-threads  = True
-
 # the socket (use the full path to be safe)
-socket          = /opt/Excel_tech/uwsgi/uwsgi.sock
-
-# ... with appropriate permissions - may be needed
+socket          = /opt/Server_dev/uwsgi/uwsgi.sock
 chmod-socket    = 666
-
 # clear environment on exit
 vacuum          = true
-
 # respawning
 harakiri        = 30
 max-requests    = 5000
 
 # increase buffer size
-buffer-size     = 65535
+buffer-size     = 65535 
 listen          = 4096
+                    

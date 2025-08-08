@@ -450,7 +450,7 @@ listen          = 4096
                         </div>
                         <pre id="service-config-code" class="text-green-400 p-6 overflow-x-auto text-sm leading-relaxed"><code>[Unit]
 Description=uWSGI instance to serve {{ project.project_name }}
-After=network.target
+After=network.target postgresql-14.service
 
 [Service]
 User=root

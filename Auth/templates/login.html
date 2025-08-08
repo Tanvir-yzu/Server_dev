@@ -564,22 +564,32 @@
                                 <i class="fas fa-sign-in-alt me-2"></i>Sign In
                             </button>
 
-                            <!-- Divider -->
+                                                    
+                            <!-- Social Login Buttons -->
                             <div class="divider">
-                                <span>or continue with</span>
+                                <span>Or continue with</span>
                             </div>
 
-                            <!-- Google Login -->
-                            <a href="{% provider_login_url 'google' %}" class="btn-google">
-                                <img src="https://img.icons8.com/color/48/google-logo.png" alt="Google logo" style="width: 20px; height: 20px; margin-right: 8px;">
-                                Sign in with Google
-                            </a>
+                            <div class="row g-3">
+                                <!-- Google Login -->
+                                <div class="col-6">
+                                    <a href="{% provider_login_url 'google' %}" class="btn btn-google">
+                                        <img src="https://img.icons8.com/color/48/google-logo.png" 
+                                            alt="Google logo" 
+                                            style="width: 20px; height: 20px; margin-right: 8px;">
+                                        Google
+                                    </a>
+                                </div>
 
-                            <a href="{% provider_login_url 'github' %}" class="btn btn-dark">
-    <i class="fab fa-github"></i> Sign in with GitHub
-</a>
-
-                            <!-- Register Link -->
+                                <!-- GitHub Login -->
+                                <div class="col-6">
+                                    <a href="{% provider_login_url 'github' %}" class="btn btn-google" style="background: #24292e; color: white; border: none;">
+                                        <i class="fab fa-github me-2"></i>
+                                        GitHub
+                                    </a>
+                                </div>
+                            </div>
+                                                        <!-- Register Link -->
                             <div class="text-center mt-4">
                                 <p class="mb-3" style="color: #6b7280; font-size: 0.875rem;">Don't have an account?</p>
                                 <a href="{% url 'register' %}" class="btn btn-register">
@@ -592,7 +602,7 @@
                     <!-- Footer -->
                     <div class="login-footer">
                         <small>
-                            &copy; 2024 Server Dev Project. All rights reserved.
+                            &copy; {% now "Y" %} Server Dev Project. All rights reserved.
                         </small>
                     </div>
                 </div>

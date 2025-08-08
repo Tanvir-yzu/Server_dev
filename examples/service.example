@@ -1,13 +1,13 @@
 [Unit]
-Description=Excel_tech-uWSGI-instance
+Description=uWSGI instance to serve Server_dev
 After=network.target postgresql-14.service
 
 [Service]
 User=root
 Group=nginx
-WorkingDirectory=/opt/Excel_tech
-Environment="PATH=/opt/Excel_tech/venv/bin"
-ExecStart=/opt/Excel_tech/venv/bin/uwsgi --ini /opt/Excel_tech/uwsgi/uwsgi.ini
+WorkingDirectory=/opt/Server_dev
+Environment="PATH=/opt/Server_dev/venv/bin"
+ExecStart=/opt/Server_dev/venv/bin/uwsgi --ini /opt/Server_dev/uwsgi/uwsgi.ini
 Restart=always
 KillSignal=SIGQUIT
 Type=notify
