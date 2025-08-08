@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Server Code - {{ project.project_name }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="//unpkg.com/alpinejs" defer></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         .scrollbar-hide {
@@ -515,12 +515,6 @@ server {
         uwsgi_send_timeout 300s;
     }
     
-    # Security headers
-    add_header X-Frame-Options "SAMEORIGIN" always;
-    add_header X-XSS-Protection "1; mode=block" always;
-    add_header X-Content-Type-Options "nosniff" always;
-    add_header Referrer-Policy "no-referrer-when-downgrade" always;
-    add_header Content-Security-Policy "default-src 'self' http: https: data: blob: 'unsafe-inline'" always;
 }</code></pre>
                     </div>
                 </div>
