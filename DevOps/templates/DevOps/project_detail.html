@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Server Code - {{ project.project_name }}{% endblock %}
+{% block title %}{{ project.project_name }} - Project Details{% endblock %}
 
 {% block breadcrumb %}
 <nav class="bg-white shadow-sm px-3 sm:px-4 py-2 mb-4 lg:ps-24">
@@ -30,19 +30,44 @@
         <!-- Header -->
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 space-y-4 sm:space-y-0">
             <div class="w-full sm:w-auto">
-                <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 break-words">{{ project.project_name }}</h2>
+                <div class="flex items-center space-x-3 mb-2">
+                    <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 break-words">{{ project.project_name }}</h2>
+                    <!-- User Role Badge -->
+                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
+                        {% if user_role == 'owner' %}bg-purple-100 text-purple-800
+                        {% elif user_role == 'admin' %}bg-red-100 text-red-800
+                        {% elif user_role == 'contributor' %}bg-blue-100 text-blue-800
+                        {% elif user_role == 'viewer' %}bg-gray-100 text-gray-800
+                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                        <i class="fas fa-user-tag mr-1"></i>
+                        {% if user_role == 'owner' %}Owner
+                        {% elif user_role == 'admin' %}Admin
+                        {% elif user_role == 'contributor' %}Contributor
+                        {% elif user_role == 'viewer' %}Viewer
+                        {% else %}{{ user_role|title }}{% endif %}
+                    </span>
+                </div>
                 <p class="text-gray-600 mt-2">Project Details</p>
             </div>
             <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
                 <a href="{% url 'devops:server_code' project.pk %}" class="bg-blue-600 hover:bg-blue-700 text-white px-3 sm:px-4 py-2 rounded-lg font-semibold transition duration-200 text-center">
                     <i class="fas fa-code mr-2"></i>View Server Code
                 </a>
+                {% if can_edit %}
                 <a href="{% url 'devops:project_edit' project.pk %}" class="bg-green-600 hover:bg-green-700 text-white px-3 sm:px-4 py-2 rounded-lg font-semibold transition duration-200 text-center">
                     <i class="fas fa-edit mr-2"></i>Edit
                 </a>
+                {% endif %}
+                {% if can_delete %}
                 <a href="{% url 'devops:project_delete' project.pk %}" class="bg-red-600 hover:bg-red-700 text-white px-3 sm:px-4 py-2 rounded-lg font-semibold transition duration-200 text-center">
                     <i class="fas fa-trash mr-2"></i>Delete
                 </a>
+                {% endif %}
+                {% if user_role == 'owner' %}
+                <a href="{% url 'collaboration:collaborator_list' project_id=project.pk %}" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 sm:px-4 py-2 rounded-lg font-semibold transition duration-200 text-center">
+                    <i class="fas fa-users mr-2"></i>Manage Team
+                </a>
+                {% endif %}
             </div>
         </div>
 
@@ -60,7 +85,14 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Owner</label>
-                        <p class="text-gray-900 break-words">{{ project.owner.get_full_name|default:project.owner.email }}</p>
+                        <div class="flex items-center space-x-2">
+                            <p class="text-gray-900 break-words">{{ project.owner.get_full_name|default:project.owner.email }}</p>
+                            {% if user_role == 'owner' %}
+                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                <i class="fas fa-crown mr-1"></i>You
+                            </span>
+                            {% endif %}
+                        </div>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Deployment Status</label>
@@ -135,6 +167,67 @@
             </div>
         </div>
 
+        <!-- Team Information (if collaborators exist) -->
+        {% if project.collaborators.exists or user_role == 'owner' %}
+        <div class="bg-white rounded-lg shadow-md p-4 sm:p-6 mt-6 sm:mt-8">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg sm:text-xl font-semibold text-gray-800">
+                    <i class="fas fa-users mr-2"></i>Team Members
+                </h3>
+                {% if user_role == 'owner' %}
+                <a href="{% url 'collaboration:collaborator_list' project_id=project.pk %}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                    <i class="fas fa-cog mr-1"></i>Manage Team
+                </a>
+                {% endif %}
+            </div>
+            <div class="space-y-3">
+                <!-- Project Owner -->
+                <div class="flex items-center justify-between p-3 bg-purple-50 rounded-lg border border-purple-200">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center">
+                            <i class="fas fa-crown text-white text-sm"></i>
+                        </div>
+                        <div>
+                            <p class="font-medium text-gray-900">{{ project.owner.get_full_name|default:project.owner.email }}</p>
+                            <p class="text-sm text-gray-600">Project Owner</p>
+                        </div>
+                    </div>
+                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                        Owner
+                    </span>
+                </div>
+                
+                <!-- Collaborators -->
+                {% for collaborator in project.collaborators.all %}
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center">
+                            <i class="fas fa-user text-white text-sm"></i>
+                        </div>
+                        <div>
+                            <p class="font-medium text-gray-900">{{ collaborator.user.get_full_name|default:collaborator.user.email }}</p>
+                            <p class="text-sm text-gray-600">Added {{ collaborator.added_at|date:"M d, Y" }}</p>
+                        </div>
+                    </div>
+                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
+                        {% if collaborator.role == 'admin' %}bg-red-100 text-red-800
+                        {% elif collaborator.role == 'contributor' %}bg-blue-100 text-blue-800
+                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                        {{ collaborator.get_role_display }}
+                    </span>
+                </div>
+                {% empty %}
+                {% if user_role == 'owner' %}
+                <div class="text-center py-6 text-gray-500">
+                    <i class="fas fa-user-plus text-2xl mb-2"></i>
+                    <p>No team members yet. <a href="{% url 'collaboration:collaborator_list' project_id=project.pk %}" class="text-blue-600 hover:text-blue-800">Invite collaborators</a> to get started.</p>
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
         <!-- Project Description -->
         <div class="bg-white rounded-lg shadow-md p-4 sm:p-6 mt-6 sm:mt-8">
             <h3 class="text-lg sm:text-xl font-semibold text-gray-800 mb-4">
@@ -150,7 +243,7 @@
             <h3 class="text-lg sm:text-xl font-semibold text-gray-800 mb-4">
                 <i class="fas fa-bolt mr-2"></i>Quick Actions
             </h3>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                 <a href="{{ project.project_github_link }}" target="_blank" class="flex items-center justify-center p-3 sm:p-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition duration-200">
                     <i class="fab fa-github text-xl sm:text-2xl mr-2 sm:mr-3"></i>
                     <span class="text-sm sm:text-base">View Repository</span>
@@ -159,12 +252,43 @@
                     <i class="fas fa-globe text-xl sm:text-2xl mr-2 sm:mr-3"></i>
                     <span class="text-sm sm:text-base">Visit Site</span>
                 </a>
-                <a href="{% url 'devops:project_edit' project.pk %}" class="flex items-center justify-center p-3 sm:p-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition duration-200 sm:col-span-2 lg:col-span-1">
+                {% if can_edit %}
+                <a href="{% url 'devops:project_edit' project.pk %}" class="flex items-center justify-center p-3 sm:p-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition duration-200">
                     <i class="fas fa-edit text-xl sm:text-2xl mr-2 sm:mr-3"></i>
                     <span class="text-sm sm:text-base">Edit Project</span>
                 </a>
+                {% endif %}
+                {% if user_role == 'owner' %}
+                <a href="{% url 'collaboration:collaborator_list' project_id=project.pk %}" class="flex items-center justify-center p-3 sm:p-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition duration-200">
+                    <i class="fas fa-users text-xl sm:text-2xl mr-2 sm:mr-3"></i>
+                    <span class="text-sm sm:text-base">Manage Team</span>
+                </a>
+                {% endif %}
             </div>
         </div>
+
+        <!-- Permission Notice -->
+        {% if user_role != 'owner' %}
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
+            <div class="flex items-start">
+                <i class="fas fa-info-circle text-blue-600 mt-1 mr-3"></i>
+                <div>
+                    <h4 class="text-sm font-medium text-blue-800 mb-1">Collaboration Access</h4>
+                    <p class="text-sm text-blue-700">
+                        You have <strong>{{ user_role }}</strong> access to this project. 
+                        {% if user_role == 'viewer' %}
+                        You can view project details but cannot make changes.
+                        {% elif user_role == 'contributor' %}
+                        You can view and edit project details.
+                        {% elif user_role == 'admin' %}
+                        You can view, edit, and delete this project.
+                        {% endif %}
+                        Contact the project owner for permission changes.
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
     </div>
 
     <!-- Mobile Menu Toggle Script -->

@@ -63,7 +63,8 @@ INSTALLED_APPS = [
 
     # Your apps
     'Auth',       # CustomUser model likely here
-    'DevOps',     # Your main app
+    'DevOps', 
+    'collaboration',
 ]
 
 MIDDLEWARE = [

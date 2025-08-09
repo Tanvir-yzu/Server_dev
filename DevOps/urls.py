@@ -14,4 +14,8 @@ urlpatterns = [
     path('projects/<int:pk>/edit/', views.ProjectUpdateView.as_view(), name='project_edit'),
     path('projects/<int:pk>/delete/', views.ProjectDeleteView.as_view(), name='project_delete'),
     path('projects/<int:pk>/code/', views.ServerCodeView.as_view(), name='server_code'),
+    
+    # Debug endpoints (remove in production)
+    path('debug/project/<int:project_id>/', views.debug_project_access, name='debug_project_access'),
+    path('debug/my-projects/', views.list_user_projects_debug, name='debug_user_projects'),
 ]

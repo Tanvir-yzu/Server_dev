@@ -11,6 +11,8 @@ urlpatterns = [
     path('accounts/', include('allauth.urls')),  # Add allauth URLs
     #path('devops/', include('DevOps.urls')),
     path('', include('DevOps.urls')),
+    path('collaboration/', include('collaboration.urls')),
+
 
 
 ]

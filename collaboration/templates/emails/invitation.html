@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Collaboration Invitation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .email-container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #007bff;
+        }
+        .header h1 {
+            color: #007bff;
+            margin: 0;
+            font-size: 28px;
+        }
+        .content {
+            margin-bottom: 30px;
+        }
+        .project-info {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 6px;
+            margin: 20px 0;
+            border-left: 4px solid #007bff;
+        }
+        .project-name {
+            font-size: 20px;
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 10px;
+        }
+        .inviter-info {
+            margin: 15px 0;
+            padding: 15px;
+            background-color: #e9ecef;
+            border-radius: 6px;
+        }
+        .cta-button {
+            display: inline-block;
+            background-color: #28a745;
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 16px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .cta-button:hover {
+            background-color: #218838;
+        }
+        .button-container {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+            font-size: 14px;
+            color: #6c757d;
+            text-align: center;
+        }
+        .warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+        .alternative-link {
+            word-break: break-all;
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <h1>🤝 Project Collaboration Invitation</h1>
+        </div>
+        
+        <div class="content">
+            <p>Hello!</p>
+            
+            <p>You have been invited to collaborate on an exciting project. Here are the details:</p>
+            
+            <div class="project-info">
+                <div class="project-name">{{ invitation.project.project_name }}</div>
+                {% if invitation.project.description %}
+                    <p><strong>Description:</strong> {{ invitation.project.description }}</p>
+                {% endif %}
+            </div>
+            
+            <div class="inviter-info">
+                <p><strong>Invited by:</strong> {{ invitation.inviter.full_name }} ({{ invitation.inviter.email }})</p>
+                <p><strong>Invitation sent:</strong> {{ invitation.created_at|date:"F d, Y at g:i A" }}</p>
+                {% if invitation.expires_at %}
+                    <p><strong>Expires:</strong> {{ invitation.expires_at|date:"F d, Y at g:i A" }}</p>
+                {% endif %}
+            </div>
+            
+            <p>As a collaborator, you'll be able to:</p>
+            <ul>
+                <li>View project details and progress</li>
+                <li>Participate in project discussions</li>
+                <li>Contribute to project development</li>
+                <li>Access project resources and documentation</li>
+            </ul>
+            
+            <div class="button-container">
+                <a href="{{ invitation_url }}" class="cta-button">Accept Invitation</a>
+            </div>
+            
+            <div class="warning">
+                <strong>⚠️ Important:</strong> This invitation is valid until {{ invitation.expires_at|date:"F d, Y" }}. 
+                After this date, you'll need to request a new invitation.
+            </div>
+            
+            <p>If the button above doesn't work, you can copy and paste this link into your browser:</p>
+            <div class="alternative-link">{{ invitation_url }}</div>
+            
+            <p>If you don't want to accept this invitation, you can simply ignore this email. The invitation will expire automatically.</p>
+        </div>
+        
+        <div class="footer">
+            <p>This is an automated message from the Project Management System.</p>
+            <p>If you have any questions, please contact {{ invitation.inviter.email }}</p>
+        </div>
+    </div>
+</body>
+</html>

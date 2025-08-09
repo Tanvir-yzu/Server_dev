@@ -1,0 +1,449 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Invite Collaborator - {{ project.project_name }}{% endblock %}
+
+{% block breadcrumb %}
+<nav class="bg-white shadow-sm px-3 sm:px-4 py-2 mb-4 lg:ps-24">
+    <ol class="list-none p-0 flex flex-wrap items-center text-sm">
+        <li class="flex items-center">
+            <a href="{% url 'devops:project_list' %}" class="text-blue-600 hover:text-blue-800">
+                <i class="fas fa-home mr-1"></i>Projects
+            </a>
+        </li>
+        <li class="flex items-center mx-2">
+            <i class="fas fa-chevron-right text-gray-400 text-xs"></i>
+        </li>
+        <li class="flex items-center">
+            <a href="{% url 'devops:project_detail' project.id %}" class="text-blue-600 hover:text-blue-800">
+                <span class="hover:underline">{{ project.project_name }}</span>
+            </a>
+        </li>
+        <li class="flex items-center mx-2">
+            <i class="fas fa-chevron-right text-gray-400 text-xs"></i>
+        </li>
+        <li class="flex items-center">
+            <a href="{% url 'collaboration:invitation_list' project.id %}" class="text-blue-600 hover:text-blue-800">
+                <span class="hover:underline">Invitations</span>
+            </a>
+        </li>
+        <li class="flex items-center mx-2">
+            <i class="fas fa-chevron-right text-gray-400 text-xs"></i>
+        </li>
+        <li class="text-gray-600 truncate">
+            Invite Collaborator
+        </li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="bg-gray-100 min-h-screen">
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-3xl font-bold text-gray-800">Invite Collaborator</h2>
+                    <p class="text-gray-600 mt-2">
+                        <i class="fas fa-project-diagram mr-2"></i>
+                        Project: <span class="font-semibold">{{ project.project_name }}</span>
+                    </p>
+                </div>
+                <div class="hidden md:block">
+                    <div class="bg-blue-50 rounded-lg p-4">
+                        <div class="flex items-center text-blue-700">
+                            <i class="fas fa-users mr-2"></i>
+                            <span class="text-sm font-medium">Current Collaborators: {{ project.collaborators.count }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Messages -->
+        {% if messages %}
+            <div class="mb-6">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} p-4 mb-4 rounded-lg {% if message.tags == 'error' %}bg-red-100 border border-red-400 text-red-700{% elif message.tags == 'success' %}bg-green-100 border border-green-400 text-green-700{% elif message.tags == 'warning' %}bg-yellow-100 border border-yellow-400 text-yellow-700{% else %}bg-blue-100 border border-blue-400 text-blue-700{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- Form -->
+        <div class="bg-white rounded-lg shadow-md p-6 max-w-4xl mx-auto">
+            <form method="post" class="space-y-6" id="invitationForm">
+                {% csrf_token %}
+                
+                <!-- Invitation Type Selection -->
+                <div class="bg-gray-50 rounded-lg p-4 mb-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                        <i class="fas fa-user-plus mr-2"></i>Invitation Type
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="invitation-type-card" data-type="email">
+                            <input type="radio" id="invite-by-email" name="invitation_type" value="email" class="sr-only" checked>
+                            <label for="invite-by-email" class="block p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-300 transition-colors duration-200">
+                                <div class="flex items-center">
+                                    <i class="fas fa-envelope text-blue-600 mr-3"></i>
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800">Invite by Email</h4>
+                                        <p class="text-sm text-gray-600">Send invitation to any email address</p>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+                        <div class="invitation-type-card" data-type="user">
+                            <input type="radio" id="invite-by-user" name="invitation_type" value="user" class="sr-only">
+                            <label for="invite-by-user" class="block p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-300 transition-colors duration-200">
+                                <div class="flex items-center">
+                                    <i class="fas fa-user text-green-600 mr-3"></i>
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800">Invite Registered User</h4>
+                                        <p class="text-sm text-gray-600">Select from existing users</p>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Email Invitation Fields -->
+                <div id="email-fields" class="invitation-fields">
+                    <div>
+                        <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-envelope mr-2"></i>Email Address <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                            <div class="mt-1 text-sm text-red-600">
+                                {% for error in form.email.errors %}
+                                    <p><i class="fas fa-exclamation-circle mr-1"></i>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <p class="mt-1 text-xs text-gray-500">Enter the email address of the person you want to invite</p>
+                    </div>
+                </div>
+
+                <!-- User Invitation Fields -->
+                <div id="user-fields" class="invitation-fields hidden">
+                    <div>
+                        <label for="{{ form.invitee.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-user mr-2"></i>Select User <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.invitee }}
+                        {% if form.invitee.errors %}
+                            <div class="mt-1 text-sm text-red-600">
+                                {% for error in form.invitee.errors %}
+                                    <p><i class="fas fa-exclamation-circle mr-1"></i>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <p class="mt-1 text-xs text-gray-500">Select a registered user from the dropdown</p>
+                        
+                        <!-- User Search -->
+                        <div class="mt-3">
+                            <div class="relative">
+                                <input type="text" id="user-search" placeholder="Search users by name or email..." 
+                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <i class="fas fa-search absolute right-3 top-3 text-gray-400"></i>
+                            </div>
+                            <div id="user-search-results" class="hidden mt-2 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Expiration Date -->
+                <div>
+                    <label for="{{ form.expires_at.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-calendar-alt mr-2"></i>Expiration Date
+                    </label>
+                    {{ form.expires_at }}
+                    {% if form.expires_at.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.expires_at.errors %}
+                                <p><i class="fas fa-exclamation-circle mr-1"></i>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <p class="mt-1 text-xs text-gray-500">Leave blank for default expiration (30 days from now)</p>
+                    
+                    <!-- Quick Date Options -->
+                    <div class="mt-3 flex flex-wrap gap-2">
+                        <button type="button" class="quick-date-btn px-3 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded-full transition-colors duration-200" data-days="7">
+                            7 days
+                        </button>
+                        <button type="button" class="quick-date-btn px-3 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded-full transition-colors duration-200" data-days="14">
+                            14 days
+                        </button>
+                        <button type="button" class="quick-date-btn px-3 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded-full transition-colors duration-200" data-days="30">
+                            30 days
+                        </button>
+                        <button type="button" class="quick-date-btn px-3 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded-full transition-colors duration-200" data-days="60">
+                            60 days
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="flex justify-between items-center pt-6 border-t border-gray-200">
+                    <a href="{% url 'collaboration:invitation_list' project.id %}" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold transition duration-200">
+                        <i class="fas fa-arrow-left mr-2"></i>Cancel
+                    </a>
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition duration-200" id="submitBtn">
+                        <i class="fas fa-paper-plane mr-2"></i>Send Invitation
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Help Section -->
+        <div class="bg-blue-50 rounded-lg p-6 mt-8 max-w-4xl mx-auto">
+            <h3 class="text-lg font-semibold text-blue-800 mb-4">
+                <i class="fas fa-info-circle mr-2"></i>Invitation Guidelines
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-blue-700">
+                <div>
+                    <h4 class="font-medium mb-2">Email Invitations:</h4>
+                    <ul class="space-y-1 list-disc list-inside">
+                        <li>Recipients will receive an email with invitation link</li>
+                        <li>They can accept even without an account</li>
+                        <li>Account will be created upon acceptance</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-medium mb-2">User Invitations:</h4>
+                    <ul class="space-y-1 list-disc list-inside">
+                        <li>Only for users already registered</li>
+                        <li>Immediate notification in their dashboard</li>
+                        <li>Can be accepted instantly</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-medium mb-2">Expiration:</h4>
+                    <ul class="space-y-1 list-disc list-inside">
+                        <li>Default expiration is 30 days</li>
+                        <li>Expired invitations cannot be accepted</li>
+                        <li>You can resend expired invitations</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-medium mb-2">Permissions:</h4>
+                    <ul class="space-y-1 list-disc list-inside">
+                        <li>New collaborators start as "Viewer"</li>
+                        <li>Role can be changed after acceptance</li>
+                        <li>Only project admins can invite others</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript for enhanced UX -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Invitation type switching
+            const invitationTypeRadios = document.querySelectorAll('input[name="invitation_type"]');
+            const emailFields = document.getElementById('email-fields');
+            const userFields = document.getElementById('user-fields');
+            const emailInput = document.getElementById('{{ form.email.id_for_label }}');
+            const userSelect = document.getElementById('{{ form.invitee.id_for_label }}');
+
+            function toggleInvitationType() {
+                const selectedType = document.querySelector('input[name="invitation_type"]:checked').value;
+                
+                // Update card styles
+                document.querySelectorAll('.invitation-type-card').forEach(card => {
+                    const label = card.querySelector('label');
+                    if (card.dataset.type === selectedType) {
+                        label.classList.add('border-blue-500', 'bg-blue-50');
+                        label.classList.remove('border-gray-200');
+                    } else {
+                        label.classList.remove('border-blue-500', 'bg-blue-50');
+                        label.classList.add('border-gray-200');
+                    }
+                });
+
+                // Toggle field visibility and requirements
+                if (selectedType === 'email') {
+                    emailFields.classList.remove('hidden');
+                    userFields.classList.add('hidden');
+                    emailInput.required = true;
+                    userSelect.required = false;
+                    userSelect.value = '';
+                } else {
+                    emailFields.classList.add('hidden');
+                    userFields.classList.remove('hidden');
+                    emailInput.required = false;
+                    userSelect.required = true;
+                    emailInput.value = '';
+                }
+            }
+
+            invitationTypeRadios.forEach(radio => {
+                radio.addEventListener('change', toggleInvitationType);
+            });
+
+            // Initialize
+            toggleInvitationType();
+
+            // Quick date selection
+            const quickDateBtns = document.querySelectorAll('.quick-date-btn');
+            const expiresAtInput = document.getElementById('{{ form.expires_at.id_for_label }}');
+
+            quickDateBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const days = parseInt(this.dataset.days);
+                    const date = new Date();
+                    date.setDate(date.getDate() + days);
+                    
+                    // Format date for datetime-local input
+                    const year = date.getFullYear();
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const day = String(date.getDate()).padStart(2, '0');
+                    const hours = String(date.getHours()).padStart(2, '0');
+                    const minutes = String(date.getMinutes()).padStart(2, '0');
+                    
+                    expiresAtInput.value = `${year}-${month}-${day}T${hours}:${minutes}`;
+                    
+                    // Update button styles
+                    quickDateBtns.forEach(b => {
+                        b.classList.remove('bg-blue-100', 'text-blue-700');
+                        b.classList.add('bg-gray-100');
+                    });
+                    this.classList.add('bg-blue-100', 'text-blue-700');
+                    this.classList.remove('bg-gray-100');
+                });
+            });
+
+            // User search functionality
+            const userSearch = document.getElementById('user-search');
+            const userSearchResults = document.getElementById('user-search-results');
+            let searchTimeout;
+
+            if (userSearch) {
+                userSearch.addEventListener('input', function() {
+                    clearTimeout(searchTimeout);
+                    const query = this.value.trim();
+                    
+                    if (query.length < 2) {
+                        userSearchResults.classList.add('hidden');
+                        return;
+                    }
+
+                    searchTimeout = setTimeout(() => {
+                        // AJAX search for users
+                        fetch(`{% url 'collaboration:search_users_ajax' %}?q=${encodeURIComponent(query)}`)
+                            .then(response => response.json())
+                            .then(data => {
+                                userSearchResults.innerHTML = '';
+                                
+                                if (data.users && data.users.length > 0) {
+                                    data.users.forEach(user => {
+                                        const div = document.createElement('div');
+                                        div.className = 'p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0';
+                                        div.innerHTML = `
+                                            <div class="flex items-center">
+                                                <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-semibold mr-3">
+                                                    ${user.full_name ? user.full_name.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase()}
+                                                </div>
+                                                <div>
+                                                    <div class="font-medium text-gray-900">${user.full_name || user.email}</div>
+                                                    <div class="text-sm text-gray-500">${user.email}</div>
+                                                </div>
+                                            </div>
+                                        `;
+                                        div.addEventListener('click', () => {
+                                            userSelect.value = user.id;
+                                            userSearch.value = user.full_name || user.email;
+                                            userSearchResults.classList.add('hidden');
+                                        });
+                                        userSearchResults.appendChild(div);
+                                    });
+                                    userSearchResults.classList.remove('hidden');
+                                } else {
+                                    userSearchResults.innerHTML = '<div class="p-3 text-gray-500 text-center">No users found</div>';
+                                    userSearchResults.classList.remove('hidden');
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Search error:', error);
+                                userSearchResults.classList.add('hidden');
+                            });
+                    }, 300);
+                });
+
+                // Hide search results when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (!userSearch.contains(e.target) && !userSearchResults.contains(e.target)) {
+                        userSearchResults.classList.add('hidden');
+                    }
+                });
+            }
+
+            // Form submission handling
+            const form = document.getElementById('invitationForm');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            if (form && submitBtn) {
+                form.addEventListener('submit', function(e) {
+                    const selectedType = document.querySelector('input[name="invitation_type"]:checked').value;
+                    
+                    // Validate based on invitation type
+                    if (selectedType === 'email' && !emailInput.value.trim()) {
+                        e.preventDefault();
+                        emailInput.focus();
+                        return;
+                    }
+                    
+                    if (selectedType === 'user' && !userSelect.value) {
+                        e.preventDefault();
+                        userSelect.focus();
+                        return;
+                    }
+
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Sending Invitation...';
+                });
+            }
+
+            // Real-time validation feedback
+            const inputs = form.querySelectorAll('input, textarea, select');
+            inputs.forEach(input => {
+                input.addEventListener('blur', function() {
+                    if (this.value.trim()) {
+                        this.classList.add('border-green-300');
+                        this.classList.remove('border-gray-300', 'border-red-300');
+                    } else if (this.hasAttribute('required')) {
+                        this.classList.add('border-red-300');
+                        this.classList.remove('border-gray-300', 'border-green-300');
+                    }
+                });
+
+                // Add initial classes
+                input.classList.add('border', 'border-gray-300');
+            });
+
+            // Email validation
+            if (emailInput) {
+                emailInput.addEventListener('input', function() {
+                    const email = this.value.trim();
+                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    
+                    if (email && !emailRegex.test(email)) {
+                        this.classList.add('border-red-300');
+                        this.classList.remove('border-green-300', 'border-gray-300');
+                    } else if (email) {
+                        this.classList.add('border-green-300');
+                        this.classList.remove('border-red-300', 'border-gray-300');
+                    }
+                });
+            }
+        });
+    </script>
+</div>
+{% endblock %}

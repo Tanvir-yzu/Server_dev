@@ -3,163 +3,390 @@
 
 {% block title %}DevOps Dashboard{% endblock %}
 {% block content %}
-<body class="bg-gray-100 min-h-screen">
+<body class="bg-gradient-to-br from-gray-50 to-blue-50 min-h-screen">
     
     <!-- Main Content -->
-    <div class="container mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8">
-        <!-- Welcome Section -->
-        <div class="mb-6 sm:mb-8">
-            <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-2 break-words">
-                Welcome back, {{ user.first_name|default:user.email }}!
-            </h2>
-            <p class="text-gray-600 text-sm sm:text-base">Manage your DevOps projects and deployments</p>
+    <div class="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 lg:py-10">
+        
+        <!-- Header Section -->
+        <div class="mb-6 sm:mb-8 lg:mb-12">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 sm:gap-6">
+                <div class="text-center lg:text-left">
+                    <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
+                        Welcome back, <span class="text-blue-600 block sm:inline">{{ user.first_name|default:user.email|truncatechars:15 }}</span>! 👋
+                    </h1>
+                    <p class="text-base sm:text-lg text-gray-600">Manage your DevOps projects and track deployments</p>
+                </div>
+                <div class="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full lg:w-auto">
+                    <a href="{% url 'devops:project_create' %}" 
+                       class="inline-flex items-center justify-center px-4 sm:px-6 py-2.5 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 text-sm sm:text-base">
+                        <i class="fas fa-plus mr-2"></i>New Project
+                    </a>
+                    <a href="{% url 'collaboration:my_invitations' %}" 
+                       class="inline-flex items-center justify-center px-4 sm:px-6 py-2.5 sm:py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 text-sm sm:text-base">
+                        <i class="fas fa-envelope mr-2"></i>Invitations
+                    </a>
+                </div>
+            </div>
         </div>
 
         <!-- Statistics Cards -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8">
-            <!-- Total Projects -->
-            <div class="bg-white rounded-lg shadow-md p-4 sm:p-6">
-                <div class="flex items-center">
-                    <div class="p-2 sm:p-3 rounded-full bg-blue-100 text-blue-600 flex-shrink-0">
-                        <i class="fas fa-project-diagram text-lg sm:text-2xl"></i>
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6 mb-8 sm:mb-10">
+            <!-- Total Projects Card -->
+            <div class="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-4 sm:p-6 border border-gray-100">
+                <div class="flex items-center justify-between">
+                    <div class="min-w-0 flex-1">
+                        <p class="text-xs sm:text-sm font-medium text-gray-600 mb-1">Total Projects</p>
+                        <p class="text-2xl sm:text-3xl font-bold text-gray-900">{{ total_projects }}</p>
+                        <div class="flex flex-col sm:flex-row sm:items-center mt-2 text-xs sm:text-sm gap-1 sm:gap-0">
+                            <span class="text-blue-600 font-medium">{{ owned_projects }} owned</span>
+                            {% if collaborated_projects > 0 %}
+                                <span class="text-gray-400 mx-2 hidden sm:inline">•</span>
+                                <span class="text-green-600 font-medium">{{ collaborated_projects }} shared</span>
+                            {% endif %}
+                        </div>
                     </div>
-                    <div class="ml-3 sm:ml-4 min-w-0 flex-1">
-                        <h3 class="text-sm sm:text-lg font-semibold text-gray-700 truncate">Total Projects</h3>
-                        <p class="text-2xl sm:text-3xl font-bold text-blue-600">{{ total_projects }}</p>
+                    <div class="p-3 sm:p-4 bg-blue-100 rounded-2xl flex-shrink-0">
+                        <i class="fas fa-project-diagram text-xl sm:text-2xl text-blue-600"></i>
                     </div>
                 </div>
             </div>
 
-            <!-- Deployed Projects -->
-            <div class="bg-white rounded-lg shadow-md p-4 sm:p-6">
-                <div class="flex items-center">
-                    <div class="p-2 sm:p-3 rounded-full bg-green-100 text-green-600 flex-shrink-0">
-                        <i class="fas fa-check-circle text-lg sm:text-2xl"></i>
-                    </div>
-                    <div class="ml-3 sm:ml-4 min-w-0 flex-1">
-                        <h3 class="text-sm sm:text-lg font-semibold text-gray-700 truncate">Deployed</h3>
+            <!-- Deployed Projects Card -->
+            <div class="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-4 sm:p-6 border border-gray-100">
+                <div class="flex items-center justify-between">
+                    <div class="min-w-0 flex-1">
+                        <p class="text-xs sm:text-sm font-medium text-gray-600 mb-1">Deployed</p>
                         <p class="text-2xl sm:text-3xl font-bold text-green-600">{{ deployed_projects }}</p>
+                        <div class="flex items-center mt-2">
+                            {% if total_projects > 0 %}
+                                {% widthratio deployed_projects total_projects 100 as deployment_rate %}
+                                <div class="flex items-center text-xs sm:text-sm text-gray-600">
+                                    <span class="text-green-600 font-medium">{{ deployment_rate }}%</span>
+                                    <span class="ml-1">success rate</span>
+                                </div>
+                            {% else %}
+                                <span class="text-xs sm:text-sm text-gray-500">No projects yet</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="p-3 sm:p-4 bg-green-100 rounded-2xl flex-shrink-0">
+                        <i class="fas fa-check-circle text-xl sm:text-2xl text-green-600"></i>
                     </div>
                 </div>
             </div>
 
-            <!-- Pending Projects -->
-            <div class="bg-white rounded-lg shadow-md p-4 sm:p-6">
-                <div class="flex items-center">
-                    <div class="p-2 sm:p-3 rounded-full bg-yellow-100 text-yellow-600 flex-shrink-0">
-                        <i class="fas fa-clock text-lg sm:text-2xl"></i>
-                    </div>
-                    <div class="ml-3 sm:ml-4 min-w-0 flex-1">
-                        <h3 class="text-sm sm:text-lg font-semibold text-gray-700 truncate">Pending</h3>
+            <!-- Pending Projects Card -->
+            <div class="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-4 sm:p-6 border border-gray-100">
+                <div class="flex items-center justify-between">
+                    <div class="min-w-0 flex-1">
+                        <p class="text-xs sm:text-sm font-medium text-gray-600 mb-1">Pending</p>
                         <p class="text-2xl sm:text-3xl font-bold text-yellow-600">{{ pending_projects }}</p>
+                        <div class="mt-2">
+                            {% if pending_projects > 0 %}
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                    <i class="fas fa-clock mr-1"></i>In Progress
+                                </span>
+                            {% else %}
+                                <span class="text-xs sm:text-sm text-gray-500">All up to date</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="p-3 sm:p-4 bg-yellow-100 rounded-2xl flex-shrink-0">
+                        <i class="fas fa-clock text-xl sm:text-2xl text-yellow-600"></i>
                     </div>
                 </div>
             </div>
 
-            <!-- Failed Projects -->
-            <div class="bg-white rounded-lg shadow-md p-4 sm:p-6">
-                <div class="flex items-center">
-                    <div class="p-2 sm:p-3 rounded-full bg-red-100 text-red-600 flex-shrink-0">
-                        <i class="fas fa-exclamation-triangle text-lg sm:text-2xl"></i>
-                    </div>
-                    <div class="ml-3 sm:ml-4 min-w-0 flex-1">
-                        <h3 class="text-sm sm:text-lg font-semibold text-gray-700 truncate">Failed</h3>
+            <!-- Failed Projects Card -->
+            <div class="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-4 sm:p-6 border border-gray-100">
+                <div class="flex items-center justify-between">
+                    <div class="min-w-0 flex-1">
+                        <p class="text-xs sm:text-sm font-medium text-gray-600 mb-1">Failed</p>
                         <p class="text-2xl sm:text-3xl font-bold text-red-600">{{ failed_projects }}</p>
+                        <div class="mt-2">
+                            {% if failed_projects > 0 %}
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                    <i class="fas fa-exclamation-triangle mr-1"></i>Needs Attention
+                                </span>
+                            {% else %}
+                                <span class="text-xs sm:text-sm text-gray-500">No issues</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="p-3 sm:p-4 bg-red-100 rounded-2xl flex-shrink-0">
+                        <i class="fas fa-exclamation-triangle text-xl sm:text-2xl text-red-600"></i>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Action Buttons -->
-        <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 sm:mb-8">
-            <a href="{% url 'devops:project_create' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold transition duration-200 text-center">
-                <i class="fas fa-plus mr-2"></i>Create New Project
-            </a>
-            <a href="{% url 'devops:project_list' %}" class="bg-gray-600 hover:bg-gray-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold transition duration-200 text-center">
-                <i class="fas fa-list mr-2"></i>View All Projects
-            </a>
-        </div>
-
-        <!-- Recent Projects -->
-        <div class="bg-white rounded-lg shadow-md">
-            <div class="p-4 sm:p-6 border-b border-gray-200">
-                <h3 class="text-lg sm:text-xl font-semibold text-gray-800">
-                    <i class="fas fa-history mr-2"></i>Recent Projects
-                </h3>
-            </div>
-            <div class="p-4 sm:p-6">
-                {% if recent_projects %}
+        <!-- Quick Actions & Recent Projects Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
+            
+            <!-- Quick Actions Panel -->
+            <div class="lg:col-span-1 order-2 lg:order-1">
+                <div class="bg-white rounded-2xl shadow-lg p-4 sm:p-6 border border-gray-100">
+                    <h3 class="text-lg sm:text-xl font-bold text-gray-900 mb-4 sm:mb-6 flex items-center">
+                        <i class="fas fa-bolt text-blue-600 mr-2 sm:mr-3"></i>Quick Actions
+                    </h3>
                     <div class="space-y-3 sm:space-y-4">
-                        {% for project in recent_projects %}
-                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 border border-gray-200 rounded-lg hover:bg-gray-50 space-y-3 sm:space-y-0">
-                                <div class="flex items-center min-w-0 flex-1">
-                                    <div class="p-2 rounded-full bg-blue-100 text-blue-600 mr-3 sm:mr-4 flex-shrink-0">
-                                        <i class="fas fa-code-branch text-sm sm:text-base"></i>
-                                    </div>
-                                    <div class="min-w-0 flex-1">
-                                        <a href="{% url 'devops:project_detail' project.pk %}" class="font-semibold text-gray-800 hover:text-blue-600 text-sm sm:text-base truncate transition duration-200">{{ project.project_name }}</a>
-                                        <p class="text-xs sm:text-sm text-gray-600 truncate">{{ project.domain_name }}</p>
-                                    </div>
-                                </div>
-                                <div class="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 flex-shrink-0">
-                                    <span class="px-2 sm:px-3 py-1 rounded-full text-xs font-medium w-full sm:w-auto text-center
-                                        {% if project.deployment_status == 'deployed' %}bg-green-100 text-green-800
-                                        {% elif project.deployment_status == 'pending' %}bg-yellow-100 text-yellow-800
-                                        {% elif project.deployment_status == 'failed' %}bg-red-100 text-red-800
-                                        {% else %}bg-gray-100 text-gray-800{% endif %}">
-                                        {{ project.get_deployment_status_display }}
-                                    </span>
-                                    <div class="flex space-x-2 sm:space-x-4 w-full sm:w-auto">
-                                        <a href="{% url 'devops:server_code' project.pk %}" class="text-blue-600 hover:text-blue-800 text-xs sm:text-sm flex-1 sm:flex-none text-center sm:text-left">
-                                            <i class="fas fa-code mr-1 sm:mr-2"></i><span class="hidden sm:inline">View Server Code</span><span class="sm:hidden">Code</span>
-                                        </a>
-                                        <a href="{% url 'devops:project_detail' project.pk %}" class="text-blue-600 hover:text-blue-800 text-xs sm:text-sm flex-1 sm:flex-none text-center sm:text-left">
-                                            <i class="fas fa-eye mr-1"></i><span class="sm:hidden">View</span>
-                                        </a>
-                                    </div>
-                                </div>
+                        <a href="{% url 'devops:project_create' %}" 
+                           class="flex items-center p-3 sm:p-4 bg-gradient-to-r from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 rounded-xl transition-all duration-300 group">
+                            <div class="p-2 sm:p-3 bg-blue-600 rounded-xl mr-3 sm:mr-4 group-hover:scale-110 transition-transform duration-300 flex-shrink-0">
+                                <i class="fas fa-plus text-white text-sm sm:text-base"></i>
                             </div>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    <div class="text-center py-6 sm:py-8">
-                        <i class="fas fa-folder-open text-3xl sm:text-4xl text-gray-400 mb-3 sm:mb-4"></i>
-                        <p class="text-gray-600 mb-3 sm:mb-4 text-sm sm:text-base">No projects yet</p>
-                        <a href="{% url 'devops:project_create' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 sm:px-6 py-2 rounded-lg font-semibold transition duration-200 text-sm sm:text-base">
-                            <i class="fas fa-plus mr-2"></i>Create Your First Project
+                            <div class="min-w-0">
+                                <p class="font-semibold text-gray-900 text-sm sm:text-base">Create Project</p>
+                                <p class="text-xs sm:text-sm text-gray-600">Start a new DevOps project</p>
+                            </div>
+                        </a>
+
+                        <a href="{% url 'devops:project_list' %}" 
+                           class="flex items-center p-3 sm:p-4 bg-gradient-to-r from-gray-50 to-gray-100 hover:from-gray-100 hover:to-gray-200 rounded-xl transition-all duration-300 group">
+                            <div class="p-2 sm:p-3 bg-gray-600 rounded-xl mr-3 sm:mr-4 group-hover:scale-110 transition-transform duration-300 flex-shrink-0">
+                                <i class="fas fa-list text-white text-sm sm:text-base"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <p class="font-semibold text-gray-900 text-sm sm:text-base">View All Projects</p>
+                                <p class="text-xs sm:text-sm text-gray-600">Manage your projects</p>
+                            </div>
+                        </a>
+
+                        <a href="{% url 'collaboration:my_collaborations' %}" 
+                           class="flex items-center p-3 sm:p-4 bg-gradient-to-r from-green-50 to-green-100 hover:from-green-100 hover:to-green-200 rounded-xl transition-all duration-300 group">
+                            <div class="p-2 sm:p-3 bg-green-600 rounded-xl mr-3 sm:mr-4 group-hover:scale-110 transition-transform duration-300 flex-shrink-0">
+                                <i class="fas fa-users text-white text-sm sm:text-base"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <p class="font-semibold text-gray-900 text-sm sm:text-base">My Collaborations</p>
+                                <p class="text-xs sm:text-sm text-gray-600">Projects you're part of</p>
+                            </div>
+                        </a>
+
+                        <a href="{% url 'collaboration:my_invitations' %}" 
+                           class="flex items-center p-3 sm:p-4 bg-gradient-to-r from-purple-50 to-purple-100 hover:from-purple-100 hover:to-purple-200 rounded-xl transition-all duration-300 group">
+                            <div class="p-2 sm:p-3 bg-purple-600 rounded-xl mr-3 sm:mr-4 group-hover:scale-110 transition-transform duration-300 flex-shrink-0">
+                                <i class="fas fa-envelope text-white text-sm sm:text-base"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <p class="font-semibold text-gray-900 text-sm sm:text-base">Pending Invitations</p>
+                                <p class="text-xs sm:text-sm text-gray-600">Review collaboration requests</p>
+                            </div>
                         </a>
                     </div>
-                {% endif %}
+                </div>
+            </div>
+
+            <!-- Recent Projects Panel -->
+            <div class="lg:col-span-2 order-1 lg:order-2">
+                <div class="bg-white rounded-2xl shadow-lg border border-gray-100">
+                    <div class="p-4 sm:p-6 border-b border-gray-200">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                            <h3 class="text-lg sm:text-xl font-bold text-gray-900 flex items-center">
+                                <i class="fas fa-history text-blue-600 mr-2 sm:mr-3"></i>Recent Projects
+                            </h3>
+                            <a href="{% url 'devops:project_list' %}" 
+                               class="text-blue-600 hover:text-blue-700 font-medium text-sm transition-colors duration-200 self-start sm:self-auto">
+                                View All →
+                            </a>
+                        </div>
+                    </div>
+                    <div class="p-4 sm:p-6">
+                        {% if recent_projects %}
+                            <div class="space-y-3 sm:space-y-4">
+                                {% for project in recent_projects %}
+                                    <div class="group p-3 sm:p-4 border border-gray-200 rounded-xl hover:border-blue-300 hover:shadow-md transition-all duration-300">
+                                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                                            <div class="flex items-center min-w-0 flex-1">
+                                                <div class="p-2 sm:p-3 rounded-xl bg-gradient-to-br from-blue-100 to-blue-200 mr-3 sm:mr-4 flex-shrink-0">
+                                                    <i class="fas fa-code-branch text-blue-600 text-sm sm:text-base"></i>
+                                                </div>
+                                                <div class="min-w-0 flex-1">
+                                                    <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-1">
+                                                        <a href="{% url 'devops:project_detail' project.pk %}" 
+                                                           class="font-semibold text-gray-900 hover:text-blue-600 transition-colors duration-200 truncate text-sm sm:text-base">
+                                                            {{ project.project_name }}
+                                                        </a>
+                                                        <!-- Role Badge -->
+                                                        {% if project.owner == user %}
+                                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 self-start">
+                                                                👑 Owner
+                                                            </span>
+                                                        {% else %}
+                                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 self-start">
+                                                                🤝 Collaborator
+                                                            </span>
+                                                        {% endif %}
+                                                    </div>
+                                                    <p class="text-xs sm:text-sm text-gray-600 truncate">{{ project.domain_name }}</p>
+                                                    <p class="text-xs text-gray-500 mt-1">Updated {{ project.created_at|timesince }} ago</p>
+                                                </div>
+                                            </div>
+                                            <div class="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 flex-shrink-0">
+                                                <!-- Status Badge -->
+                                                <span class="inline-flex items-center px-2 sm:px-3 py-1 rounded-full text-xs font-medium
+                                                    {% if project.deployment_status == 'deployed' %}bg-green-100 text-green-800
+                                                    {% elif project.deployment_status == 'pending' %}bg-yellow-100 text-yellow-800
+                                                    {% elif project.deployment_status == 'failed' %}bg-red-100 text-red-800
+                                                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                                    {% if project.deployment_status == 'deployed' %}
+                                                        <i class="fas fa-check-circle mr-1"></i>
+                                                    {% elif project.deployment_status == 'pending' %}
+                                                        <i class="fas fa-clock mr-1"></i>
+                                                    {% elif project.deployment_status == 'failed' %}
+                                                        <i class="fas fa-exclamation-triangle mr-1"></i>
+                                                    {% endif %}
+                                                    <span class="hidden sm:inline">{{ project.get_deployment_status_display }}</span>
+                                                    <span class="sm:hidden">
+                                                        {% if project.deployment_status == 'deployed' %}✓
+                                                        {% elif project.deployment_status == 'pending' %}⏳
+                                                        {% elif project.deployment_status == 'failed' %}⚠️
+                                                        {% else %}—{% endif %}
+                                                    </span>
+                                                </span>
+                                                
+                                                <!-- Action Buttons -->
+                                                <div class="flex gap-1 sm:gap-2 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300">
+                                                    <a href="{% url 'devops:server_code' project.pk %}" 
+                                                       class="p-1.5 sm:p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors duration-200"
+                                                       title="View Code">
+                                                        <i class="fas fa-code text-xs sm:text-sm"></i>
+                                                    </a>
+                                                    <a href="{% url 'devops:project_detail' project.pk %}" 
+                                                       class="p-1.5 sm:p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+                                                       title="View Details">
+                                                        <i class="fas fa-eye text-xs sm:text-sm"></i>
+                                                    </a>
+                                                    {% if project.owner == user %}
+                                                        <a href="{% url 'collaboration:collaborator_list' project_id=project.pk %}" 
+                                                           class="p-1.5 sm:p-2 text-purple-600 hover:bg-purple-100 rounded-lg transition-colors duration-200"
+                                                           title="Manage Team">
+                                                            <i class="fas fa-users text-xs sm:text-sm"></i>
+                                                        </a>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="text-center py-8 sm:py-12">
+                                <div class="p-4 sm:p-6 bg-gray-100 rounded-full w-16 h-16 sm:w-24 sm:h-24 mx-auto mb-4 sm:mb-6 flex items-center justify-center">
+                                    <i class="fas fa-folder-open text-2xl sm:text-3xl text-gray-400"></i>
+                                </div>
+                                <h4 class="text-base sm:text-lg font-semibold text-gray-700 mb-2">No projects yet</h4>
+                                <p class="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6 max-w-md mx-auto px-4">
+                                    Start your DevOps journey by creating your first project and begin tracking deployments.
+                                </p>
+                                <a href="{% url 'devops:project_create' %}" 
+                                   class="inline-flex items-center px-4 sm:px-6 py-2.5 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 text-sm sm:text-base">
+                                    <i class="fas fa-plus mr-2"></i>Create Your First Project
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Mobile Menu Toggle Script -->
+    <!-- Enhanced JavaScript for better interactions -->
     <script>
-        function toggleMobileMenu() {
-            const menu = document.getElementById('mobile-menu');
-            menu.classList.toggle('hidden');
+        // Add smooth scroll behavior
+        document.documentElement.style.scrollBehavior = 'smooth';
+
+        // Add loading states for action buttons
+        document.querySelectorAll('a[href*="create"], a[href*="edit"]').forEach(link => {
+            link.addEventListener('click', function(e) {
+                const icon = this.querySelector('i');
+                if (icon && !icon.classList.contains('fa-spin')) {
+                    const originalClass = icon.className;
+                    icon.className = 'fas fa-spinner fa-spin mr-2';
+                    
+                    // Reset icon after 3 seconds if page doesn't navigate
+                    setTimeout(() => {
+                        if (icon) {
+                            icon.className = originalClass;
+                        }
+                    }, 3000);
+                }
+            });
+        });
+
+        // Add hover effects for cards with touch support
+        document.querySelectorAll('.group').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                if (window.innerWidth >= 640) { // Only on larger screens
+                    this.style.transform = 'translateY(-2px)';
+                }
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+
+            // Touch support for mobile devices
+            card.addEventListener('touchstart', function() {
+                this.style.transform = 'translateY(-1px)';
+            });
+
+            card.addEventListener('touchend', function() {
+                setTimeout(() => {
+                    this.style.transform = 'translateY(0)';
+                }, 150);
+            });
+        });
+
+        // Auto-refresh statistics every 30 seconds (only on desktop)
+        if (window.innerWidth >= 1024) {
+            setInterval(() => {
+                // Only refresh if user is active (has interacted recently)
+                if (document.hasFocus()) {
+                    fetch(window.location.href, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    }).then(response => {
+                        if (response.ok) {
+                            // Optionally update statistics without full page reload
+                            console.log('Statistics refreshed');
+                        }
+                    }).catch(err => {
+                        console.log('Auto-refresh failed:', err);
+                    });
+                }
+            }, 30000);
         }
 
-        // Close mobile menu when clicking outside
-        document.addEventListener('click', function(event) {
-            const menu = document.getElementById('mobile-menu');
-            const button = event.target.closest('button');
-            
-            if (!button && !menu.contains(event.target)) {
-                menu.classList.add('hidden');
-            }
+        // Handle orientation change
+        window.addEventListener('orientationchange', function() {
+            setTimeout(() => {
+                // Force a reflow to handle any layout issues
+                document.body.style.display = 'none';
+                document.body.offsetHeight; // Trigger reflow
+                document.body.style.display = '';
+            }, 100);
         });
 
-        // Handle window resize
-        window.addEventListener('resize', function() {
-            const menu = document.getElementById('mobile-menu');
-            if (window.innerWidth >= 640) { // sm breakpoint
-                menu.classList.remove('hidden');
-            } else {
-                menu.classList.add('hidden');
-            }
-        });
+        // Optimize for mobile performance
+        if ('ontouchstart' in window) {
+            // Disable hover effects on touch devices
+            document.documentElement.classList.add('touch-device');
+            
+            // Add CSS for touch devices
+            const style = document.createElement('style');
+            style.textContent = `
+                .touch-device .group:hover {
+                    transform: none !important;
+                }
+                .touch-device .opacity-0 {
+                    opacity: 1 !important;
+                }
+            `;
+            document.head.appendChild(style);
+        }
     </script>
 </body>
 {% endblock %}

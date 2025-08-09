@@ -1,0 +1,579 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Project Collaborators - {{ project.project_name }}{% endblock %}
+
+{% block breadcrumb %}
+<nav class="flex flex-wrap mb-6 bg-white shadow-sm rounded-lg p-3 ps-4 md:ps-24" aria-label="Breadcrumb">
+    <ol class="inline-flex items-center space-x-1 md:space-x-3">
+        <li class="inline-flex items-center">
+            <a href="{% url 'devops:dashboard' %}" 
+               class="text-gray-700 hover:text-blue-600 inline-flex items-center transition duration-200 font-medium">
+                <i class="fas fa-home mr-2 text-blue-500"></i>
+                <span class="hover:underline">Dashboard</span>
+            </a>
+        </li>
+        <li>
+            <div class="flex items-center">
+                <i class="fas fa-chevron-right text-gray-400 mx-2"></i>
+                <a href="{% url 'devops:project_list' %}" 
+                   class="text-gray-700 hover:text-blue-600 font-medium transition duration-200">
+                    <span class="hover:underline">Projects</span>
+                </a>
+            </div>
+        </li>
+        <li>
+            <div class="flex items-center">
+                <i class="fas fa-chevron-right text-gray-400 mx-2"></i>
+                <a href="{% url 'devops:project_detail' project.pk %}" 
+                   class="text-gray-700 hover:text-blue-600 font-medium transition duration-200">
+                    <span class="hover:underline">{{ project.project_name }}</span>
+                </a>
+            </div>
+        </li>
+        <li>
+            <div class="flex items-center">
+                <i class="fas fa-chevron-right text-gray-400 mx-2"></i>
+                <span class="text-gray-500 font-medium">Collaborators</span>
+            </div>
+        </li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div x-data="collaboratorManager()" class="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <!-- Header Section -->
+    <div class="flex flex-col lg:flex-row lg:justify-between lg:items-center mb-10 gap-4">
+        <div>
+            <h2 class="text-3xl font-extrabold text-gray-800 tracking-tight flex items-center">
+                <i class="fas fa-users mr-3 text-blue-600"></i>
+                Project Collaborators
+            </h2>
+            <p class="text-gray-600 mt-2">Manage team members for <strong>{{ project.project_name }}</strong></p>
+        </div>
+        
+        <div class="flex flex-col sm:flex-row gap-3">
+            <a href="{% url 'collaboration:invitation_list' project.pk %}" 
+               class="inline-flex items-center justify-center bg-gray-600 hover:bg-gray-700 text-white px-5 py-2.5 rounded-full font-semibold shadow transition-all duration-300">
+                <i class="fas fa-envelope mr-2"></i>View Invitations
+            </a>
+            {% if can_manage %}
+                <a href="{% url 'collaboration:invitation_create' project.pk %}" 
+                   class="inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-full font-semibold shadow transition-all duration-300">
+                    <i class="fas fa-user-plus mr-2"></i>Invite Collaborator
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                    <i class="fas fa-users text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Total Collaborators</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ collaborators|length|add:1 }}</p>
+                    <p class="text-xs text-gray-500">Including owner</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-green-100 text-green-600">
+                    <i class="fas fa-user-shield text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Admins</p>
+                    <p class="text-2xl font-bold text-gray-900">
+                        {% with admin_count=collaborators|length %}
+                            {% for collaborator in collaborators %}
+                                {% if collaborator.role == 'admin' %}{{ forloop.counter0|add:1 }}{% endif %}
+                            {% endfor %}
+                        {% endwith %}
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-yellow-100 text-yellow-600">
+                    <i class="fas fa-user-edit text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Contributors</p>
+                    <p class="text-2xl font-bold text-gray-900">
+                        {% with contributor_count=0 %}
+                            {% for collaborator in collaborators %}
+                                {% if collaborator.role == 'contributor' %}{{ forloop.counter0|add:1 }}{% endif %}
+                            {% endfor %}
+                        {% endwith %}
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-purple-100 text-purple-600">
+                    <i class="fas fa-eye text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Viewers</p>
+                    <p class="text-2xl font-bold text-gray-900">
+                        {% with viewer_count=0 %}
+                            {% for collaborator in collaborators %}
+                                {% if collaborator.role == 'viewer' %}{{ forloop.counter0|add:1 }}{% endif %}
+                            {% endfor %}
+                        {% endwith %}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="bg-white rounded-xl shadow-lg border border-gray-100 mb-8">
+        <div class="border-b border-gray-200">
+            <nav class="flex space-x-8 px-6" aria-label="Tabs">
+                <button @click="activeTab = 'all'" 
+                        :class="activeTab === 'all' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                        class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200">
+                    All Members
+                </button>
+                <button @click="activeTab = 'admin'" 
+                        :class="activeTab === 'admin' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                        class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200">
+                    Admins
+                </button>
+                <button @click="activeTab = 'contributor'" 
+                        :class="activeTab === 'contributor' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                        class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200">
+                    Contributors
+                </button>
+                <button @click="activeTab = 'viewer'" 
+                        :class="activeTab === 'viewer' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                        class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200">
+                    Viewers
+                </button>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Collaborators List -->
+    <div class="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
+        <!-- Project Owner -->
+        <div x-show="shouldShowCollaborator('owner')" 
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 transform scale-95"
+             x-transition:enter-end="opacity-100 transform scale-100"
+             class="border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+            <div class="px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 h-12 w-12">
+                            {% if project.owner.profile.photo %}
+                                <img class="h-12 w-12 rounded-full object-cover border-2 border-blue-300" 
+                                     src="{{ project.owner.profile.photo.url }}" 
+                                     alt="{{ project.owner.full_name }}">
+                            {% else %}
+                                <div class="h-12 w-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg border-2 border-blue-300">
+                                    {{ project.owner.full_name.0|upper|default:project.owner.email.0|upper }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="ml-4">
+                            <div class="flex items-center">
+                                <h3 class="text-lg font-semibold text-gray-900">
+                                    {{ project.owner.full_name|default:project.owner.email }}
+                                </h3>
+                                <span class="ml-3 inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-blue-500 to-purple-600 text-white">
+                                    <i class="fas fa-crown mr-1"></i>Project Owner
+                                </span>
+                            </div>
+                            <p class="text-sm text-gray-600">{{ project.owner.email }}</p>
+                            <p class="text-xs text-gray-500 mt-1">
+                                <i class="fas fa-calendar-alt mr-1"></i>
+                                Project created {{ project.created_at|date:"M d, Y" }}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-xs text-gray-500">Full Access</span>
+                        <i class="fas fa-shield-alt text-blue-600"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Collaborators -->
+        {% if collaborators %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Collaborator
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Role
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Added Date
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Added By
+                            </th>
+                            {% if can_manage %}
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Actions
+                                </th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for collaborator in collaborators %}
+                        <tr x-show="shouldShowCollaborator('{{ collaborator.role }}')" 
+                            x-transition:enter="transition ease-out duration-200"
+                            x-transition:enter-start="opacity-0 transform scale-95"
+                            x-transition:enter-end="opacity-100 transform scale-100"
+                            class="hover:bg-gray-50 transition-colors duration-200">
+                            
+                            <!-- Collaborator Info -->
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 h-10 w-10">
+                                        {% if collaborator.user.profile.photo %}
+                                            <img class="h-10 w-10 rounded-full object-cover" 
+                                                 src="{{ collaborator.user.profile.photo.url }}" 
+                                                 alt="{{ collaborator.user.full_name }}">
+                                        {% else %}
+                                            <div class="h-10 w-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-semibold">
+                                                {{ collaborator.user.full_name.0|upper|default:collaborator.user.email.0|upper }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="ml-4">
+                                        <div class="text-sm font-medium text-gray-900">
+                                            {{ collaborator.user.full_name|default:collaborator.user.email }}
+                                        </div>
+                                        <div class="text-sm text-gray-500">{{ collaborator.user.email }}</div>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <!-- Role -->
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {% if collaborator.role == 'admin' %}
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                        <i class="fas fa-user-shield mr-1"></i>Admin
+                                    </span>
+                                {% elif collaborator.role == 'contributor' %}
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                        <i class="fas fa-user-edit mr-1"></i>Contributor
+                                    </span>
+                                {% else %}
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                        <i class="fas fa-eye mr-1"></i>Viewer
+                                    </span>
+                                {% endif %}
+                            </td>
+
+                            <!-- Added Date -->
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                <div class="flex items-center">
+                                    <i class="fas fa-calendar-alt mr-2 text-gray-400"></i>
+                                    {{ collaborator.added_at|date:"M d, Y" }}
+                                </div>
+                                <div class="text-xs text-gray-400 mt-1">
+                                    {{ collaborator.added_at|timesince }} ago
+                                </div>
+                            </td>
+
+                            <!-- Added By -->
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {% if collaborator.added_by %}
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-6 w-6">
+                                            {% if collaborator.added_by.profile.photo %}
+                                                <img class="h-6 w-6 rounded-full object-cover" 
+                                                     src="{{ collaborator.added_by.profile.photo.url }}" 
+                                                     alt="{{ collaborator.added_by.full_name }}">
+                                            {% else %}
+                                                <div class="h-6 w-6 rounded-full bg-gray-400 flex items-center justify-center text-white text-xs font-semibold">
+                                                    {{ collaborator.added_by.full_name.0|upper|default:collaborator.added_by.email.0|upper }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        <span class="ml-2">{{ collaborator.added_by.full_name|default:collaborator.added_by.email }}</span>
+                                    </div>
+                                {% else %}
+                                    <span class="text-gray-400 italic">System</span>
+                                {% endif %}
+                            </td>
+
+                            <!-- Actions -->
+                            {% if can_manage %}
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <div class="flex items-center justify-end space-x-2">
+                                        <!-- Role Update -->
+                                        <div class="relative" x-data="{ open: false }">
+                                            <button @click="open = !open" 
+                                                    class="text-blue-600 hover:text-blue-900 p-2 rounded-full hover:bg-blue-50 transition-colors duration-200"
+                                                    title="Change role">
+                                                <i class="fas fa-user-cog"></i>
+                                            </button>
+                                            <div x-show="open" 
+                                                 @click.away="open = false"
+                                                 x-transition:enter="transition ease-out duration-100"
+                                                 x-transition:enter-start="transform opacity-0 scale-95"
+                                                 x-transition:enter-end="transform opacity-100 scale-100"
+                                                 x-transition:leave="transition ease-in duration-75"
+                                                 x-transition:leave-start="transform opacity-100 scale-100"
+                                                 x-transition:leave-end="transform opacity-0 scale-95"
+                                                 class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 border border-gray-200">
+                                                <div class="py-1">
+                                                    <button @click="updateRole({{ collaborator.id }}, 'admin'); open = false" 
+                                                            class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200">
+                                                        <i class="fas fa-user-shield mr-2 text-red-600"></i>Make Admin
+                                                    </button>
+                                                    <button @click="updateRole({{ collaborator.id }}, 'contributor'); open = false" 
+                                                            class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200">
+                                                        <i class="fas fa-user-edit mr-2 text-yellow-600"></i>Make Contributor
+                                                    </button>
+                                                    <button @click="updateRole({{ collaborator.id }}, 'viewer'); open = false" 
+                                                            class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200">
+                                                        <i class="fas fa-eye mr-2 text-gray-600"></i>Make Viewer
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Remove Collaborator -->
+                                        <button @click="removeCollaborator({{ collaborator.id }}, '{{ collaborator.user.full_name|default:collaborator.user.email }}')" 
+                                                class="text-red-600 hover:text-red-900 p-2 rounded-full hover:bg-red-50 transition-colors duration-200"
+                                                title="Remove collaborator">
+                                            <i class="fas fa-user-times"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            {% endif %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <!-- Empty State -->
+            <div class="text-center py-16">
+                <div class="mx-auto h-24 w-24 text-gray-400 mb-6">
+                    <i class="fas fa-users text-6xl"></i>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">No collaborators yet</h3>
+                <p class="text-gray-500 mb-6">Get started by inviting team members to collaborate on this project.</p>
+                {% if can_manage %}
+                    <div class="mt-6">
+                        <a href="{% url 'collaboration:invitation_create' project.pk %}" 
+                           class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            <i class="fas fa-user-plus mr-2"></i>
+                            Invite First Collaborator
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+        <nav class="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6 mt-8 rounded-lg shadow">
+            <div class="flex flex-1 justify-between sm:hidden">
+                {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}" class="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">Previous</a>
+                {% endif %}
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}" class="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">Next</a>
+                {% endif %}
+            </div>
+            <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+                <div>
+                    <p class="text-sm text-gray-700">
+                        Showing <span class="font-medium">{{ page_obj.start_index }}</span> to <span class="font-medium">{{ page_obj.end_index }}</span> of <span class="font-medium">{{ page_obj.paginator.count }}</span> collaborators
+                    </p>
+                </div>
+                <div>
+                    <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+                        {% if page_obj.has_previous %}
+                            <a href="?page=1" class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">
+                                <i class="fas fa-angle-double-left"></i>
+                            </a>
+                            <a href="?page={{ page_obj.previous_page_number }}" class="relative inline-flex items-center px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">
+                                <i class="fas fa-angle-left"></i>
+                            </a>
+                        {% endif %}
+
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                                <span class="relative z-10 inline-flex items-center bg-blue-600 px-4 py-2 text-sm font-semibold text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">{{ num }}</span>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                <a href="?page={{ num }}" class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">{{ num }}</a>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
+                            <a href="?page={{ page_obj.next_page_number }}" class="relative inline-flex items-center px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">
+                                <i class="fas fa-angle-right"></i>
+                            </a>
+                            <a href="?page={{ page_obj.paginator.num_pages }}" class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">
+                                <i class="fas fa-angle-double-right"></i>
+                            </a>
+                        {% endif %}
+                    </nav>
+                </div>
+            </div>
+        </nav>
+    {% endif %}
+
+    <!-- Role Information Panel -->
+    <div class="bg-blue-50 rounded-xl p-6 mt-8">
+        <h3 class="text-lg font-semibold text-blue-800 mb-4">
+            <i class="fas fa-info-circle mr-2"></i>Role Permissions
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm text-blue-700">
+            <div>
+                <h4 class="font-medium mb-2 flex items-center">
+                    <i class="fas fa-user-shield mr-2 text-red-600"></i>Admin
+                </h4>
+                <ul class="space-y-1 list-disc list-inside">
+                    <li>Full project access</li>
+                    <li>Manage collaborators</li>
+                    <li>Send invitations</li>
+                    <li>Edit project settings</li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="font-medium mb-2 flex items-center">
+                    <i class="fas fa-user-edit mr-2 text-yellow-600"></i>Contributor
+                </h4>
+                <ul class="space-y-1 list-disc list-inside">
+                    <li>View project details</li>
+                    <li>Access project resources</li>
+                    <li>Contribute to development</li>
+                    <li>Limited editing rights</li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="font-medium mb-2 flex items-center">
+                    <i class="fas fa-eye mr-2 text-gray-600"></i>Viewer
+                </h4>
+                <ul class="space-y-1 list-disc list-inside">
+                    <li>View project details</li>
+                    <li>Read-only access</li>
+                    <li>No editing permissions</li>
+                    <li>Basic project information</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for enhanced functionality -->
+<script>
+    function collaboratorManager() {
+        return {
+            activeTab: 'all',
+            
+            shouldShowCollaborator(role) {
+                if (this.activeTab === 'all') return true;
+                return this.activeTab === role;
+            },
+            
+            shouldShowEmptyState() {
+                // Check if current tab has no collaborators
+                const collaborators = document.querySelectorAll(`[x-show*="${this.activeTab}"]`);
+                return collaborators.length === 0;
+            },
+            
+            async updateRole(collaboratorId, newRole) {
+                try {
+                    const response = await fetch(`{% url 'collaboration:update_collaborator_role_ajax' 0 %}`.replace('0', collaboratorId), {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                        },
+                        body: JSON.stringify({ role: newRole })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        // Show success message
+                        this.showNotification('Role updated successfully', 'success');
+                        // Reload page to reflect changes
+                        setTimeout(() => window.location.reload(), 1000);
+                    } else {
+                        this.showNotification(data.error || 'Failed to update role', 'error');
+                    }
+                } catch (error) {
+                    this.showNotification('An error occurred while updating the role', 'error');
+                }
+            },
+            
+            async removeCollaborator(collaboratorId, userName) {
+                if (!confirm(`Are you sure you want to remove ${userName} from this project?`)) {
+                    return;
+                }
+                
+                try {
+                    const response = await fetch(`{% url 'collaboration:collaborator_remove' project.pk 0 %}`.replace('0', collaboratorId), {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        this.showNotification(`${userName} has been removed from the project`, 'success');
+                        // Reload page to reflect changes
+                        setTimeout(() => window.location.reload(), 1000);
+                    } else {
+                        this.showNotification('Failed to remove collaborator', 'error');
+                    }
+                } catch (error) {
+                    this.showNotification('An error occurred while removing the collaborator', 'error');
+                }
+            },
+            
+            showNotification(message, type) {
+                // Create notification element
+                const notification = document.createElement('div');
+                notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transition-all duration-300 ${
+                    type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+                }`;
+                notification.innerHTML = `
+                    <div class="flex items-center">
+                        <i class="fas fa-${type === 'success' ? 'check' : 'exclamation-triangle'} mr-2"></i>
+                        <span>${message}</span>
+                    </div>
+                `;
+                
+                document.body.appendChild(notification);
+                
+                // Remove notification after 3 seconds
+                setTimeout(() => {
+                    notification.remove();
+                }, 3000);
+            }
+        }
+    }
+</script>
+
+<!-- Add CSRF token for AJAX requests -->
+{% csrf_token %}
+{% endblock %}

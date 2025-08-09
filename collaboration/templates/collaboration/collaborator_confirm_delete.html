@@ -1,0 +1,318 @@
+{% extends 'DevOps/base.html' %}
+{% load static %}
+
+{% block title %}Remove Collaborator - {{ project.project_name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .confirm-delete-container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .confirm-card {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        padding: 30px;
+        margin-bottom: 20px;
+        border-top: 4px solid #dc3545;
+    }
+    
+    .confirm-header {
+        text-align: center;
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 2px solid #dc3545;
+    }
+    
+    .confirm-header h2 {
+        color: #dc3545;
+        margin: 0;
+        font-size: 24px;
+    }
+    
+    .warning-icon {
+        font-size: 48px;
+        color: #dc3545;
+        margin-bottom: 15px;
+    }
+    
+    .project-info {
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-radius: 6px;
+        margin-bottom: 20px;
+        border-left: 4px solid #007bff;
+    }
+    
+    .collaborator-info {
+        background-color: #fff3cd;
+        border: 1px solid #ffeaa7;
+        padding: 20px;
+        border-radius: 6px;
+        margin-bottom: 25px;
+        text-align: center;
+    }
+    
+    .collaborator-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background-color: #dc3545;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 32px;
+        font-weight: bold;
+        margin: 0 auto 15px;
+        border: 3px solid white;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .collaborator-name {
+        font-size: 22px;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 5px;
+    }
+    
+    .collaborator-email {
+        color: #6c757d;
+        font-size: 14px;
+        margin-bottom: 10px;
+    }
+    
+    .collaborator-role {
+        display: inline-block;
+        background-color: #007bff;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+    
+    .warning-message {
+        background-color: #f8d7da;
+        border: 1px solid #f5c6cb;
+        color: #721c24;
+        padding: 20px;
+        border-radius: 6px;
+        margin-bottom: 25px;
+    }
+    
+    .warning-message h4 {
+        color: #721c24;
+        margin-bottom: 15px;
+        font-size: 18px;
+    }
+    
+    .warning-list {
+        margin: 15px 0;
+        padding-left: 20px;
+    }
+    
+    .warning-list li {
+        margin-bottom: 8px;
+    }
+    
+    .btn-group {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        margin-top: 30px;
+    }
+    
+    .btn {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 6px;
+        font-size: 16px;
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-block;
+        text-align: center;
+        min-width: 120px;
+    }
+    
+    .btn-danger {
+        background-color: #dc3545;
+        color: white;
+    }
+    
+    .btn-danger:hover {
+        background-color: #c82333;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+    }
+    
+    .btn-secondary {
+        background-color: #6c757d;
+        color: white;
+    }
+    
+    .btn-secondary:hover {
+        background-color: #545b62;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(108, 117, 125, 0.3);
+    }
+    
+    .breadcrumb {
+        background-color: transparent;
+        padding: 0;
+        margin-bottom: 20px;
+    }
+    
+    .breadcrumb-item {
+        display: inline;
+    }
+    
+    .breadcrumb-item + .breadcrumb-item::before {
+        content: " > ";
+        color: #6c757d;
+        padding: 0 8px;
+    }
+    
+    .breadcrumb-item a {
+        color: #007bff;
+        text-decoration: none;
+    }
+    
+    .breadcrumb-item a:hover {
+        text-decoration: underline;
+    }
+    
+    .breadcrumb-item.active {
+        color: #6c757d;
+    }
+    
+    .confirmation-text {
+        text-align: center;
+        font-size: 18px;
+        color: #333;
+        margin-bottom: 20px;
+        line-height: 1.6;
+    }
+    
+    .meta-info {
+        background-color: #e9ecef;
+        padding: 15px;
+        border-radius: 6px;
+        margin-bottom: 20px;
+        font-size: 14px;
+        color: #6c757d;
+    }
+    
+    .meta-info strong {
+        color: #333;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="confirm-delete-container">
+    <!-- Breadcrumb Navigation -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'DevOps:project_list' %}">Projects</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'DevOps:project_detail' project.pk %}">{{ project.project_name }}</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'collaboration:collaborator_list' project.pk %}">Collaborators</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Remove Collaborator</li>
+        </ol>
+    </nav>
+
+    <div class="confirm-card">
+        <div class="confirm-header">
+            <div class="warning-icon">⚠️</div>
+            <h2>Remove Collaborator</h2>
+        </div>
+
+        <!-- Project Information -->
+        <div class="project-info">
+            <strong>Project:</strong> {{ project.project_name }}
+            {% if project.description %}
+                <br><small>{{ project.description|truncatewords:20 }}</small>
+            {% endif %}
+        </div>
+
+        <!-- Collaborator Information -->
+        <div class="collaborator-info">
+            <div class="collaborator-avatar">
+                {{ object.user.full_name|first|upper }}
+            </div>
+            <div class="collaborator-name">{{ object.user.full_name }}</div>
+            <div class="collaborator-email">{{ object.user.email }}</div>
+            <div class="collaborator-role">{{ object.get_role_display }}</div>
+        </div>
+
+        <!-- Meta Information -->
+        <div class="meta-info">
+            <strong>Added:</strong> {{ object.added_at|date:"F d, Y at g:i A" }}<br>
+            <strong>Added by:</strong> {{ object.added_by.full_name }}<br>
+            <strong>Current role:</strong> {{ object.get_role_display }}
+        </div>
+
+        <!-- Confirmation Message -->
+        <div class="confirmation-text">
+            Are you sure you want to remove <strong>{{ object.user.full_name }}</strong> from this project?
+        </div>
+
+        <!-- Warning Message -->
+        <div class="warning-message">
+            <h4>🚨 This action cannot be undone!</h4>
+            <p>Removing this collaborator will:</p>
+            <ul class="warning-list">
+                <li>Immediately revoke their access to the project</li>
+                <li>Remove them from all project-related communications</li>
+                <li>Delete their collaboration history (but preserve their contributions)</li>
+                <li>Require a new invitation if they need access again</li>
+            </ul>
+            <p><strong>Note:</strong> The user will not be notified of their removal.</p>
+        </div>
+
+        <!-- Confirmation Form -->
+        <form method="post">
+            {% csrf_token %}
+            <div class="btn-group">
+                <button type="submit" class="btn btn-danger" onclick="return confirmRemoval()">
+                    🗑️ Yes, Remove Collaborator
+                </button>
+                <a href="{% url 'collaboration:collaborator_list' project.pk %}" class="btn btn-secondary">
+                    ❌ Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function confirmRemoval() {
+    const collaboratorName = '{{ object.user.full_name }}';
+    const projectName = '{{ project.project_name }}';
+    
+    return confirm(
+        `Are you absolutely sure you want to remove ${collaboratorName} from "${projectName}"?\n\n` +
+        `This action cannot be undone and will immediately revoke their access to the project.`
+    );
+}
+
+// Add keyboard shortcut for cancel (Escape key)
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        window.location.href = '{% url "collaboration:collaborator_list" project.pk %}';
+    }
+});
+
+// Focus management for accessibility
+document.addEventListener('DOMContentLoaded', function() {
+    // Focus the cancel button by default for safety
+    document.querySelector('.btn-secondary').focus();
+});
+</script>
+{% endblock %}
