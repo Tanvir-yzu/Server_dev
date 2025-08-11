@@ -1,0 +1,507 @@
+{% extends 'base.html' %}
+
+{% block title %}System Logs - Admin Panel{% endblock %}
+
+{% block meta_description %}System logs administration panel for monitoring and debugging{% endblock %}
+
+{% block extra_css %}
+<!-- Tailwind CSS (play CDN for quick prototyping) -->
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- Alpine.js -->
+<script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<!-- Font Awesome (optional if not already included in base.html) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-pb6G8X0d6w6b3X1Z2+qzq8Xq2l9Z1q6z9Vtqf9m7h3z8tK1K6Q9x9j9G0f7S6m5Q0K2z7Q==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+<style>
+    /* Minimal helper styles that Tailwind doesn't provide inline for the rendered log HTML */
+    .log-container {
+        background: #0f172a; /* slate-900 */
+        color: #e6edf3;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, 'Courier New', monospace;
+        font-size: 0.8125rem; /* 13px */
+        line-height: 1.4;
+    }
+
+    .log-line { padding: 0.25rem 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.03); white-space: pre-wrap; word-break: break-all; }
+    .log-line:hover { background: rgba(255,255,255,0.02); }
+
+    /* Log level colors (kept as classes used by the JS formatter) */
+    .log-level-INFO { color: #4ade80; }      /* green-400 */
+    .log-level-WARNING { color: #f59e0b; }   /* yellow-500 */
+    .log-level-ERROR { color: #ef4444; }     /* red-500 */
+    .log-level-DEBUG { color: #60a5fa; }     /* blue-400 */
+    .log-level-CRITICAL { color: #b91c1c; background: rgba(185,28,28,0.06); padding: 0 0.25rem; border-radius: 0.25rem; }
+
+    .log-timestamp { color: #94a3b8; } /* gray-400 */
+    .log-module { color: #a78bfa; }    /* purple-400 */
+
+    /* small scrollbar hide for modern browsers */
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6" x-data="adminLogsApp()" x-init="init()">
+    <!-- Header -->
+    <div class="mb-6">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-800 flex items-center">
+                    <i class="fas fa-file-alt mr-3 text-blue-600"></i>
+                    System Logs
+                </h1>
+                <p class="text-gray-600 mt-1">Monitor and analyze system activity</p>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-wrap gap-2">
+                <button @click="refreshLogs()" 
+                        :disabled="isRefreshing"
+                        class="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg flex items-center space-x-2">
+                    <i class="fas fa-sync-alt" :class="isRefreshing ? 'animate-spin' : ''"></i>
+                    <span x-text="isRefreshing ? 'Refreshing...' : 'Refresh'"></span>
+                </button>
+                
+                <button @click="toggleAutoRefresh()" 
+                        class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg flex items-center space-x-2"
+                        :class="autoRefresh ? 'bg-green-600 hover:bg-green-700 text-white' : ''">
+                    <i class="fas" :class="autoRefresh ? 'fa-pause' : 'fa-play'"></i>
+                    <span x-text="autoRefresh ? 'Stop Auto' : 'Auto Refresh'"></span>
+                </button>
+                
+                <button @click="downloadLog()" 
+                        class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2"
+                        :disabled="!selectedLog">
+                    <i class="fas fa-download"></i>
+                    <span>Download</span>
+                </button>
+                
+                <button @click="clearFilters()" 
+                        class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg flex items-center space-x-2">
+                    <i class="fas fa-filter"></i>
+                    <span>Clear Filters</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div class="bg-gradient-to-br from-white to-gray-50 rounded-lg shadow-md border border-gray-200 p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Total Lines</p>
+                    <p class="text-2xl font-bold text-gray-900" x-text="logStats.totalLines"></p>
+                </div>
+                <div class="p-3 bg-blue-100 rounded-full">
+                    <i class="fas fa-list text-blue-600"></i>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-gradient-to-br from-white to-gray-50 rounded-lg shadow-md border border-gray-200 p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Errors</p>
+                    <p class="text-2xl font-bold text-red-600" x-text="logStats.errors"></p>
+                </div>
+                <div class="p-3 bg-red-100 rounded-full">
+                    <i class="fas fa-exclamation-triangle text-red-600"></i>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-gradient-to-br from-white to-gray-50 rounded-lg shadow-md border border-gray-200 p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Warnings</p>
+                    <p class="text-2xl font-bold text-yellow-600" x-text="logStats.warnings"></p>
+                </div>
+                <div class="p-3 bg-yellow-100 rounded-full">
+                    <i class="fas fa-exclamation text-yellow-600"></i>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-gradient-to-br from-white to-gray-50 rounded-lg shadow-md border border-gray-200 p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Last Updated</p>
+                    <p class="text-sm font-bold text-gray-900" x-text="lastUpdated"></p>
+                </div>
+                <div class="p-3 bg-green-100 rounded-full">
+                    <i class="fas fa-clock text-green-600"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Controls Panel -->
+    <div class="bg-white rounded-lg shadow p-4 mb-6">
+        <div class="mb-3">
+            <h3 class="text-lg font-semibold text-gray-800 flex items-center">
+                <i class="fas fa-cogs mr-2"></i>
+                Log Controls
+            </h3>
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Log File Selection -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    <i class="fas fa-file mr-1"></i>
+                    Select Log File
+                </label>
+                <select x-model="selectedLog" 
+                        @change="refreshLogs()"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    {% for log_file in log_files %}
+                        <option value="{{ log_file }}" {% if log_file == selected_log %}selected{% endif %}>
+                            {{ log_file }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <!-- Lines to Display -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    <i class="fas fa-list-ol mr-1"></i>
+                    Lines to Display
+                </label>
+                <select x-model="linesToShow" 
+                        @change="refreshLogs()"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="50">50 lines</option>
+                    <option value="100" selected>100 lines</option>
+                    <option value="200">200 lines</option>
+                    <option value="500">500 lines</option>
+                    <option value="1000">1000 lines</option>
+                </select>
+            </div>
+            
+            <!-- Search Filter -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    <i class="fas fa-search mr-1"></i>
+                    Search Logs
+                </label>
+                <input type="text" 
+                       x-model="searchFilter" 
+                       @input="filterLogs()"
+                       placeholder="Search in logs..."
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            </div>
+        </div>
+        
+        <!-- Log Level Filters -->
+        <div class="mt-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+                <i class="fas fa-filter mr-1"></i>
+                Filter by Log Level
+            </label>
+            <div class="flex flex-wrap gap-2">
+                <template x-for="level in logLevels" :key="level">
+                    <button @click="toggleLogLevel(level)"
+                            class="px-3 py-1 rounded-full text-sm font-medium transition-all duration-200"
+                            :class="activeLogLevels.includes(level) ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'"
+                            x-text="level">
+                    </button>
+                </template>
+            </div>
+        </div>
+    </div>
+
+    <!-- Log Content -->
+    <div class="bg-white rounded-lg shadow">
+        <div class="flex justify-between items-center px-6 py-4 border-b border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-800 flex items-center">
+                <i class="fas fa-terminal mr-2"></i>
+                Log Content: <span class="text-blue-600 ml-2" x-text="selectedLog"></span>
+            </h3>
+            <div class="flex items-center space-x-4 text-sm text-gray-600">
+                <span x-show="autoRefresh" class="flex items-center">
+                    <i class="fas fa-circle text-green-500 mr-1 animate-pulse"></i>
+                    Auto-refresh ON
+                </span>
+                <span>Lines: <span x-text="(filteredLogContent ? filteredLogContent.split('\n').filter(Boolean).length : 0)"></span></span>
+            </div>
+        </div>
+        
+        <!-- Log Display -->
+        <div class="relative">
+            <!-- Loading Overlay -->
+            <div x-show="isRefreshing" 
+                 class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-10">
+                <div class="bg-white rounded-lg p-4 flex items-center space-x-3">
+                    <i class="fas fa-spinner fa-spin text-blue-600"></i>
+                    <span class="text-gray-700">Loading logs...</span>
+                </div>
+            </div>
+            
+            <!-- Log Content Container -->
+            <div class="log-container max-h-96 overflow-y-auto scrollbar-hide" 
+                 x-ref="logContainer">
+                <template x-if="filteredLogContent">
+                    <div x-html="formatLogContent(filteredLogContent)"></div>
+                </template>
+                
+                <template x-if="!filteredLogContent">
+                    <div class="p-8 text-center text-gray-500">
+                        <i class="fas fa-file-alt text-4xl mb-4"></i>
+                        <p>No log content available</p>
+                        <button @click="refreshLogs()" class="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
+                            <i class="fas fa-refresh mr-2"></i>
+                            Load Logs
+                        </button>
+                    </div>
+                </template>
+            </div>
+        </div>
+        
+        <!-- Log Footer -->
+        <div class="px-6 py-3 bg-gray-50 border-t border-gray-200 flex justify-between items-center text-sm text-gray-600">
+            <div class="flex items-center space-x-4">
+                <span>File: {{ selected_log }}</span>
+                <span>•</span>
+                <span x-text="'Updated: ' + lastUpdated"></span>
+            </div>
+            <div class="flex items-center space-x-2">
+                <button @click="scrollToTop()" class="text-blue-600 hover:text-blue-800">
+                    <i class="fas fa-arrow-up mr-1"></i>Top
+                </button>
+                <span>•</span>
+                <button @click="scrollToBottom()" class="text-blue-600 hover:text-blue-800">
+                    <i class="fas fa-arrow-down mr-1"></i>Bottom
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for Log Management (unchanged logic, only small tweaks to match classes above) -->
+<script>
+function adminLogsApp() {
+    return {
+        selectedLog: '{{ selected_log }}',
+        logContent: `{{ log_content|escapejs }}`,
+        filteredLogContent: '',
+        searchFilter: '',
+        activeLogLevels: ['INFO', 'WARNING', 'ERROR', 'DEBUG', 'CRITICAL'],
+        logLevels: ['INFO', 'WARNING', 'ERROR', 'DEBUG', 'CRITICAL'],
+        isRefreshing: false,
+        autoRefresh: false,
+        autoRefreshInterval: null,
+        linesToShow: 100,
+        lastUpdated: '',
+        logStats: {
+            totalLines: 0,
+            errors: 0,
+            warnings: 0,
+            info: 0
+        },
+        
+        init() {
+            this.filteredLogContent = this.logContent;
+            this.updateStats();
+            this.updateTimestamp();
+            this.filterLogs();
+        },
+        
+        async refreshLogs() {
+            this.isRefreshing = true;
+            
+            try {
+                const response = await fetch(`{% url 'system:refresh_logs_ajax' %}?log=${this.selectedLog}&lines=${this.linesToShow}`, {
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    this.logContent = data.log_content;
+                    this.filterLogs();
+                    this.updateStats();
+                    this.updateTimestamp();
+                    
+                    // Show success notification
+                    this.showNotification('Logs refreshed successfully', 'success');
+                } else {
+                    this.showNotification('Error refreshing logs: ' + data.error, 'error');
+                }
+            } catch (error) {
+                console.error('Error refreshing logs:', error);
+                this.showNotification('Network error while refreshing logs', 'error');
+            } finally {
+                this.isRefreshing = false;
+            }
+        },
+        
+        toggleAutoRefresh() {
+            this.autoRefresh = !this.autoRefresh;
+            
+            if (this.autoRefresh) {
+                this.autoRefreshInterval = setInterval(() => {
+                    this.refreshLogs();
+                }, 30000); // Refresh every 30 seconds
+                this.showNotification('Auto-refresh enabled (30s interval)', 'info');
+            } else {
+                if (this.autoRefreshInterval) {
+                    clearInterval(this.autoRefreshInterval);
+                    this.autoRefreshInterval = null;
+                }
+                this.showNotification('Auto-refresh disabled', 'info');
+            }
+        },
+        
+        filterLogs() {
+            let content = this.logContent;
+            
+            // Apply search filter
+            if (this.searchFilter.trim()) {
+                const lines = content.split('\n');
+                const filteredLines = lines.filter(line => 
+                    line.toLowerCase().includes(this.searchFilter.toLowerCase())
+                );
+                content = filteredLines.join('\n');
+            }
+            
+            // Apply log level filter
+            if (this.activeLogLevels.length < this.logLevels.length) {
+                const lines = content.split('\n');
+                const filteredLines = lines.filter(line => {
+                    return this.activeLogLevels.some(level => line.includes(level));
+                });
+                content = filteredLines.join('\n');
+            }
+            
+            this.filteredLogContent = content;
+        },
+        
+        toggleLogLevel(level) {
+            const index = this.activeLogLevels.indexOf(level);
+            if (index > -1) {
+                this.activeLogLevels.splice(index, 1);
+            } else {
+                this.activeLogLevels.push(level);
+            }
+            this.filterLogs();
+        },
+        
+        clearFilters() {
+            this.searchFilter = '';
+            this.activeLogLevels = [...this.logLevels];
+            this.filterLogs();
+            this.showNotification('Filters cleared', 'info');
+        },
+        
+        formatLogContent(content) {
+            if (!content) return '';
+            
+            return content.split('\n').map(line => {
+                if (!line.trim()) return '<div class="log-line">&nbsp;</div>';
+                
+                let formattedLine = this.escapeHtml(line);
+                
+                // Highlight log levels
+                this.logLevels.forEach(level => {
+                    const regex = new RegExp(`\\b${level}\\b`, 'g');
+                    formattedLine = formattedLine.replace(regex, `<span class="log-level-${level}">${level}</span>`);
+                });
+                
+                // Highlight timestamps
+                formattedLine = formattedLine.replace(
+                    /(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})/g,
+                    '<span class="log-timestamp">$1</span>'
+                );
+                
+                // Highlight module names
+                formattedLine = formattedLine.replace(
+                    /(\w+\.\w+)/g,
+                    '<span class="log-module">$1</span>'
+                );
+                
+                return `<div class="log-line">${formattedLine}</div>`;
+            }).join('');
+        },
+        
+        escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        },
+        
+        updateStats() {
+            const lines = this.logContent.split('\n').filter(line => line.trim());
+            this.logStats.totalLines = lines.length;
+            this.logStats.errors = lines.filter(line => line.includes('ERROR')).length;
+            this.logStats.warnings = lines.filter(line => line.includes('WARNING')).length;
+            this.logStats.info = lines.filter(line => line.includes('INFO')).length;
+        },
+        
+        updateTimestamp() {
+            this.lastUpdated = new Date().toLocaleTimeString();
+        },
+        
+        downloadLog() {
+            if (!this.selectedLog) return;
+            
+            const url = `{% url 'system:download_log_file' filename='PLACEHOLDER' %}`.replace('PLACEHOLDER', this.selectedLog);
+            window.open(url, '_blank');
+        },
+        
+        scrollToTop() {
+            this.$refs.logContainer.scrollTop = 0;
+        },
+        
+        scrollToBottom() {
+            this.$refs.logContainer.scrollTop = this.$refs.logContainer.scrollHeight;
+        },
+        
+        showNotification(message, type = 'info') {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg text-white max-w-sm transform transition-all duration-300 translate-x-full`;
+            
+            // Set color based on type
+            const colors = {
+                success: 'bg-green-600',
+                error: 'bg-red-600',
+                warning: 'bg-yellow-600',
+                info: 'bg-blue-600'
+            };
+            
+            notification.classList.add(colors[type] || colors.info);
+            notification.innerHTML = `
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'times' : type === 'warning' ? 'exclamation' : 'info'}-circle"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Animate in
+            setTimeout(() => {
+                notification.classList.remove('translate-x-full');
+            }, 100);
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+                notification.classList.add('translate-x-full');
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
+        }
+    }
+}
+</script>
+
+<!-- CSRF Token for AJAX requests -->
+{% csrf_token %}
+{% endblock %}

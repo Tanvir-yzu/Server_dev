@@ -1,0 +1,1029 @@
+{% extends 'base.html' %}
+
+{% block title %}System Health Monitor{% endblock %}
+
+{% block meta_description %}Modern system health monitoring dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Modern Dashboard Theme */
+    :root {
+        --primary-bg: #f8fafc;
+        --secondary-bg: #ffffff;
+        --accent-bg: #f1f5f9;
+        --border-color: #e2e8f0;
+        --text-primary: #1e293b;
+        --text-secondary: #64748b;
+        --text-muted: #94a3b8;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --info: #3b82f6;
+        --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        
+        /* Additional color variables for better consistency */
+        --success-light: rgba(16, 185, 129, 0.1);
+        --success-border: rgba(16, 185, 129, 0.2);
+        --warning-light: rgba(245, 158, 11, 0.1);
+        --warning-border: rgba(245, 158, 11, 0.2);
+        --danger-light: rgba(239, 68, 68, 0.1);
+        --danger-border: rgba(239, 68, 68, 0.2);
+        --info-light: rgba(59, 130, 246, 0.1);
+        --info-border: rgba(59, 130, 246, 0.2);
+        
+        /* Hover colors */
+        --success-hover: #059669;
+        --warning-hover: #d97706;
+        --danger-hover: #dc2626;
+        --info-hover: #2563eb;
+    }
+
+    body {
+        background: var(--primary-bg);
+        color: var(--text-primary);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        line-height: 1.6;
+    }
+
+    .dashboard-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem;
+        min-height: 100vh;
+    }
+
+    /* Header Section */
+    .dashboard-header {
+        background: var(--secondary-bg);
+        border-radius: 1rem;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border-color);
+    }
+
+    .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .header-title {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .header-title h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin: 0;
+        background: var(--gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        /* Fallback for browsers that don't support background-clip */
+        color: var(--text-primary);
+    }
+
+    .header-title .icon {
+        width: 3rem;
+        height: 3rem;
+        background: var(--gradient);
+        border-radius: 0.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+    }
+
+    .system-overview {
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+        font-size: 0.875rem;
+    }
+
+    .status-badge {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 9999px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        transition: all 0.2s ease;
+    }
+
+    .status-badge.healthy {
+        background: var(--success-light);
+        color: var(--success);
+        border: 1px solid var(--success-border);
+    }
+
+    .status-badge.warning {
+        background: var(--warning-light);
+        color: var(--warning);
+        border: 1px solid var(--warning-border);
+    }
+
+    .status-badge.critical {
+        background: var(--danger-light);
+        color: var(--danger);
+        border: 1px solid var(--danger-border);
+    }
+
+    .status-dot {
+        width: 0.5rem;
+        height: 0.5rem;
+        border-radius: 50%;
+        animation: pulse 2s infinite;
+    }
+
+    .status-dot.healthy { background: var(--success); }
+    .status-dot.warning { background: var(--warning); }
+    .status-dot.critical { background: var(--danger); }
+
+    /* Control Panel */
+    .control-panel {
+        background: var(--secondary-bg);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border-color);
+    }
+
+    .controls-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .control-buttons {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        font-size: 0.875rem;
+        transition: all 0.2s ease;
+        border: none;
+        cursor: pointer;
+        text-decoration: none;
+    }
+
+    .btn-primary {
+        background: var(--info);
+        color: white;
+        box-shadow: var(--shadow);
+    }
+
+    .btn-primary:hover {
+        background: var(--info-hover);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .btn-success {
+        background: var(--success);
+        color: white;
+        box-shadow: var(--shadow);
+    }
+
+    .btn-success:hover {
+        background: var(--success-hover);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .btn-warning {
+        background: var(--warning);
+        color: white;
+        box-shadow: var(--shadow);
+    }
+
+    .btn-warning:hover {
+        background: var(--warning-hover);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+        background: var(--text-muted) !important;
+    }
+
+    .auto-refresh-info {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+    }
+
+    /* Metrics Grid */
+    .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .metric-card {
+        background: var(--secondary-bg);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border-color);
+        transition: all 0.2s ease;
+    }
+
+    .metric-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+        border-color: var(--info-border);
+    }
+
+    .metric-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+    }
+
+    .metric-title {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .metric-icon {
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.25rem;
+    }
+
+    .metric-icon.cpu { background: linear-gradient(135deg, #667eea, #764ba2); }
+    .metric-icon.memory { background: linear-gradient(135deg, #f093fb, #f5576c); }
+    .metric-icon.disk { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+    .metric-icon.network { background: linear-gradient(135deg, #43e97b, #38f9d7); }
+
+    .metric-status {
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        border: 1px solid transparent;
+    }
+
+    .metric-status.healthy {
+        background: var(--success-light);
+        color: var(--success);
+        border-color: var(--success-border);
+    }
+
+    .metric-status.warning {
+        background: var(--warning-light);
+        color: var(--warning);
+        border-color: var(--warning-border);
+    }
+
+    .metric-status.critical {
+        background: var(--danger-light);
+        color: var(--danger);
+        border-color: var(--danger-border);
+    }
+
+    .metric-value {
+        font-size: 2.5rem;
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+        color: var(--text-primary);
+    }
+
+    .metric-progress {
+        width: 100%;
+        height: 0.5rem;
+        background: var(--accent-bg);
+        border-radius: 9999px;
+        overflow: hidden;
+        margin: 1rem 0;
+        border: 1px solid var(--border-color);
+    }
+
+    .progress-fill {
+        height: 100%;
+        border-radius: 9999px;
+        transition: width 0.5s ease;
+        background: var(--success);
+    }
+
+    .progress-fill.warning { background: var(--warning); }
+    .progress-fill.critical { background: var(--danger); }
+
+    .metric-details {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin-top: 1rem;
+    }
+
+    .detail-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.875rem;
+    }
+
+    .detail-label {
+        color: var(--text-secondary);
+        font-weight: 500;
+    }
+
+    .detail-value {
+        color: var(--text-primary);
+        font-weight: 600;
+    }
+
+    /* System Info Panel */
+    .system-info {
+        background: var(--secondary-bg);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border-color);
+    }
+
+    .section-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+
+    .section-icon {
+        width: 2rem;
+        height: 2rem;
+        background: var(--gradient);
+        border-radius: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .info-item {
+        text-align: center;
+        padding: 1rem;
+        background: var(--accent-bg);
+        border-radius: 0.75rem;
+        border: 1px solid var(--border-color);
+        transition: all 0.2s ease;
+    }
+
+    .info-item:hover {
+        background: var(--secondary-bg);
+        box-shadow: var(--shadow);
+        transform: translateY(-1px);
+    }
+
+    .info-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-secondary);
+        margin-bottom: 0.5rem;
+    }
+
+    .info-value {
+        font-size: 1.125rem;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+
+    /* Services Status */
+    .services-panel {
+        background: var(--secondary-bg);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border-color);
+    }
+
+    .service-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin-bottom: 0.5rem;
+        background: var(--accent-bg);
+        border: 1px solid var(--border-color);
+        transition: all 0.2s ease;
+    }
+
+    .service-item:hover {
+        transform: translateX(4px);
+        box-shadow: var(--shadow);
+        background: var(--secondary-bg);
+        border-color: var(--info-border);
+    }
+
+    .service-info {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .service-name {
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .service-status-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .service-uptime {
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+    }
+
+    /* Loading States */
+    .loading-spinner {
+        width: 1rem;
+        height: 1rem;
+        border: 2px solid var(--border-color);
+        border-top: 2px solid var(--info);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    /* Animations */
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    /* Notifications */
+    .notification {
+        position: fixed;
+        top: 1rem;
+        right: 1rem;
+        background: var(--secondary-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 0.75rem;
+        padding: 1rem 1.5rem;
+        box-shadow: var(--shadow-lg);
+        z-index: 1000;
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+        min-width: 300px;
+        color: var(--text-primary);
+    }
+
+    .notification.show {
+        transform: translateX(0);
+    }
+
+    .notification.success { 
+        border-left: 4px solid var(--success);
+        background: var(--success-light);
+    }
+    
+    .notification.warning { 
+        border-left: 4px solid var(--warning);
+        background: var(--warning-light);
+    }
+    
+    .notification.error { 
+        border-left: 4px solid var(--danger);
+        background: var(--danger-light);
+    }
+
+    .notification.info { 
+        border-left: 4px solid var(--info);
+        background: var(--info-light);
+    }
+
+    /* Dark mode support */
+    @media (prefers-color-scheme: dark) {
+        :root {
+            --primary-bg: #0f172a;
+            --secondary-bg: #1e293b;
+            --accent-bg: #334155;
+            --border-color: #475569;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+        }
+        
+        .header-title h1 {
+            color: var(--text-primary);
+        }
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .dashboard-container {
+            padding: 1rem;
+        }
+        
+        .header-content {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .controls-row {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .metrics-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .info-grid {
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        }
+        
+        .service-item {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container" x-data="systemHealthApp()">
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+        <div class="header-content">
+            <div class="header-title">
+                <div class="icon">
+                    <i class="fas fa-heartbeat"></i>
+                </div>
+                <h1 style="color:rgb(246, 59, 218);">System Health Monitor</h1>
+            </div>
+            <div class="system-overview">
+                <div class="status-badge" :class="overallStatus">
+                    <div class="status-dot" :class="overallStatus"></div>
+                    <span x-text="overallStatus.toUpperCase()"></span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-secondary);">
+                    <i class="fas fa-clock"></i>
+                    <span x-text="'Last updated: ' + lastUpdate"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Control Panel -->
+    <div class="control-panel">
+        <div class="controls-row">
+            <div class="control-buttons">
+                <button @click="refreshHealth()" 
+                        :disabled="isRefreshing"
+                        class="btn btn-primary">
+                    <div class="loading-spinner" x-show="isRefreshing"></div>
+                    <i class="fas fa-sync-alt" x-show="!isRefreshing"></i>
+                    <span x-text="isRefreshing ? 'Refreshing...' : 'Refresh Data'"></span>
+                </button>
+                
+                <button @click="toggleAutoRefresh()" 
+                        class="btn"
+                        :class="autoRefresh ? 'btn-warning' : 'btn-success'">
+                    <i class="fas" :class="autoRefresh ? 'fa-pause' : 'fa-play'"></i>
+                    <span x-text="autoRefresh ? 'Stop Auto-Refresh' : 'Enable Auto-Refresh'"></span>
+                </button>
+                
+                <button @click="exportReport()" class="btn btn-primary">
+                    <i class="fas fa-download"></i>
+                    <span>Export Report</span>
+                </button>
+            </div>
+            
+            <div class="auto-refresh-info" x-show="autoRefresh">
+                <i class="fas fa-sync-alt fa-spin"></i>
+                <span>Auto-refresh every 30 seconds</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Information -->
+    <div class="system-info">
+        <div class="section-header">
+            <div class="section-icon">
+                <i class="fas fa-server"></i>
+            </div>
+            <span>System Information</span>
+        </div>
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-label">Hostname</div>
+                <div class="info-value" x-text="systemInfo.hostname">{{ system_info.hostname|default:'localhost' }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Operating System</div>
+                <div class="info-value" x-text="systemInfo.os_version">{{ system_info.os_version|default:'Unknown' }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Python Version</div>
+                <div class="info-value" x-text="systemInfo.python_version">{{ system_info.python_version|default:'Unknown' }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Django Version</div>
+                <div class="info-value" x-text="systemInfo.django_version">{{ system_info.django_version|default:'Unknown' }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">System Uptime</div>
+                <div class="info-value" x-text="systemInfo.uptime">{{ system_info.uptime|default:'Unknown' }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Load Average</div>
+                <div class="info-value" x-text="systemInfo.load_average">{{ system_info.load_average|default:'Unknown' }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Health Metrics -->
+    <div class="metrics-grid">
+        <!-- CPU Usage -->
+        <div class="metric-card">
+            <div class="metric-header">
+                <div class="metric-title">
+                    <div class="metric-icon cpu">
+                        <i class="fas fa-microchip"></i>
+                    </div>
+                    <span>CPU Usage</span>
+                </div>
+                <div class="metric-status" :class="getHealthStatus(healthMetrics.cpu_usage, 70, 90)">
+                    <span x-text="getStatusText(healthMetrics.cpu_usage, 70, 90)"></span>
+                </div>
+            </div>
+            <div class="metric-value" x-text="healthMetrics.cpu_usage + '%'"></div>
+            <div class="metric-progress">
+                <div class="progress-fill" 
+                     :class="getHealthStatus(healthMetrics.cpu_usage, 70, 90)" 
+                     :style="`width: ${healthMetrics.cpu_usage}%`"></div>
+            </div>
+            <div class="metric-details">
+                <div class="detail-item">
+                    <span class="detail-label">Cores</span>
+                    <span class="detail-value" x-text="healthMetrics.cpu_cores"></span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Temperature</span>
+                    <span class="detail-value">65°C</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Memory Usage -->
+        <div class="metric-card">
+            <div class="metric-header">
+                <div class="metric-title">
+                    <div class="metric-icon memory">
+                        <i class="fas fa-memory"></i>
+                    </div>
+                    <span>Memory Usage</span>
+                </div>
+                <div class="metric-status" :class="getHealthStatus(healthMetrics.memory_usage, 80, 95)">
+                    <span x-text="getStatusText(healthMetrics.memory_usage, 80, 95)"></span>
+                </div>
+            </div>
+            <div class="metric-value" x-text="healthMetrics.memory_usage + '%'"></div>
+            <div class="metric-progress">
+                <div class="progress-fill" 
+                     :class="getHealthStatus(healthMetrics.memory_usage, 80, 95)" 
+                     :style="`width: ${healthMetrics.memory_usage}%`"></div>
+            </div>
+            <div class="metric-details">
+                <div class="detail-item">
+                    <span class="detail-label">Used</span>
+                    <span class="detail-value" x-text="healthMetrics.memory_used"></span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Total</span>
+                    <span class="detail-value" x-text="healthMetrics.memory_total"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Disk Usage -->
+        <div class="metric-card">
+            <div class="metric-header">
+                <div class="metric-title">
+                    <div class="metric-icon disk">
+                        <i class="fas fa-hdd"></i>
+                    </div>
+                    <span>Disk Usage</span>
+                </div>
+                <div class="metric-status" :class="getHealthStatus(healthMetrics.disk_usage, 85, 95)">
+                    <span x-text="getStatusText(healthMetrics.disk_usage, 85, 95)"></span>
+                </div>
+            </div>
+            <div class="metric-value" x-text="healthMetrics.disk_usage + '%'"></div>
+            <div class="metric-progress">
+                <div class="progress-fill" 
+                     :class="getHealthStatus(healthMetrics.disk_usage, 85, 95)" 
+                     :style="`width: ${healthMetrics.disk_usage}%`"></div>
+            </div>
+            <div class="metric-details">
+                <div class="detail-item">
+                    <span class="detail-label">Used</span>
+                    <span class="detail-value" x-text="healthMetrics.disk_used"></span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Available</span>
+                    <span class="detail-value" x-text="healthMetrics.disk_total"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Network Status -->
+        <div class="metric-card">
+            <div class="metric-header">
+                <div class="metric-title">
+                    <div class="metric-icon network">
+                        <i class="fas fa-network-wired"></i>
+                    </div>
+                    <span>Network Status</span>
+                </div>
+                <div class="metric-status" :class="healthMetrics.network_status === 'connected' ? 'healthy' : 'critical'">
+                    <span x-text="healthMetrics.network_status.toUpperCase()"></span>
+                </div>
+            </div>
+            <div class="metric-value" style="font-size: 1.5rem;" x-text="healthMetrics.network_status === 'connected' ? 'Online' : 'Offline'"></div>
+            <div class="metric-details">
+                <div class="detail-item">
+                    <span class="detail-label">Sent</span>
+                    <span class="detail-value" x-text="healthMetrics.bytes_sent"></span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Received</span>
+                    <span class="detail-value" x-text="healthMetrics.bytes_received"></span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Connections</span>
+                    <span class="detail-value" x-text="healthMetrics.active_connections"></span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Latency</span>
+                    <span class="detail-value">12ms</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Services Status -->
+    <div class="services-panel">
+        <div class="section-header">
+            <div class="section-icon">
+                <i class="fas fa-cogs"></i>
+            </div>
+            <span>Services Status</span>
+        </div>
+        <template x-for="service in services" :key="service.name">
+            <div class="service-item">
+                <div class="service-info">
+                    <div class="status-dot" :class="service.status === 'online' ? 'healthy' : service.status === 'warning' ? 'warning' : 'critical'"></div>
+                    <span class="service-name" x-text="service.name"></span>
+                </div>
+                <div class="service-status-info">
+                    <div class="status-badge" :class="service.status === 'online' ? 'healthy' : service.status === 'warning' ? 'warning' : 'critical'">
+                        <span x-text="service.status.toUpperCase()"></span>
+                    </div>
+                    <span class="service-uptime" x-text="service.uptime"></span>
+                </div>
+            </div>
+        </template>
+    </div>
+</div>
+
+<!-- JavaScript for System Health Monitoring -->
+<script>
+function systemHealthApp() {
+    return {
+        isRefreshing: false,
+        autoRefresh: true,
+        autoRefreshInterval: null,
+        lastUpdate: '',
+        overallStatus: 'healthy',
+        
+        systemInfo: {
+            hostname: '{{ system_info.hostname|default:"localhost" }}',
+            os_version: '{{ system_info.os_version|default:"Unknown" }}',
+            python_version: '{{ system_info.python_version|default:"Unknown" }}',
+            django_version: '{{ system_info.django_version|default:"Unknown" }}',
+            uptime: '{{ system_info.uptime|default:"Unknown" }}',
+            load_average: '{{ system_info.load_average|default:"Unknown" }}'
+        },
+        
+        healthMetrics: {
+            cpu_usage: {{ health_metrics.cpu_usage|default:45 }},
+            cpu_cores: {{ health_metrics.cpu_cores|default:4 }},
+            memory_usage: {{ health_metrics.memory_usage|default:65 }},
+            memory_used: '{{ health_metrics.memory_used|default:"2.1 GB" }}',
+            memory_total: '{{ health_metrics.memory_total|default:"8.0 GB" }}',
+            disk_usage: {{ health_metrics.disk_usage|default:75 }},
+            disk_used: '{{ health_metrics.disk_used|default:"45 GB" }}',
+            disk_total: '{{ health_metrics.disk_total|default:"100 GB" }}',
+            network_status: '{{ health_metrics.network_status|default:"connected" }}',
+            bytes_sent: '{{ health_metrics.bytes_sent|default:"1.2 GB" }}',
+            bytes_received: '{{ health_metrics.bytes_received|default:"3.4 GB" }}',
+            active_connections: {{ health_metrics.active_connections|default:25 }}
+        },
+        
+        services: [
+            { name: 'Django Application', status: 'online', uptime: '2d 14h 32m' },
+            { name: 'Database (PostgreSQL)', status: 'online', uptime: '7d 3h 15m' },
+            { name: 'Redis Cache', status: 'online', uptime: '5d 12h 45m' },
+            { name: 'Nginx Web Server', status: 'online', uptime: '15d 8h 22m' },
+            { name: 'Celery Workers', status: 'warning', uptime: '1d 2h 10m' },
+            { name: 'Email Service', status: 'online', uptime: '3d 18h 5m' }
+        ],
+        
+        init() {
+            this.updateTimestamp();
+            this.updateOverallStatus();
+            
+            if (this.autoRefresh) {
+                this.startAutoRefresh();
+            }
+        },
+        
+        async refreshHealth() {
+            this.isRefreshing = true;
+            
+            try {
+                // Simulate API call - replace with actual endpoint
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // Update metrics with random values for demo
+                this.healthMetrics.cpu_usage = Math.floor(Math.random() * 100);
+                this.healthMetrics.memory_usage = Math.floor(Math.random() * 100);
+                this.healthMetrics.disk_usage = Math.floor(Math.random() * 100);
+                
+                this.updateTimestamp();
+                this.updateOverallStatus();
+                this.showNotification('Health data refreshed successfully', 'success');
+            } catch (error) {
+                this.showNotification('Failed to refresh health data', 'error');
+            } finally {
+                this.isRefreshing = false;
+            }
+        },
+        
+        toggleAutoRefresh() {
+            this.autoRefresh = !this.autoRefresh;
+            
+            if (this.autoRefresh) {
+                this.startAutoRefresh();
+                this.showNotification('Auto-refresh enabled', 'success');
+            } else {
+                this.stopAutoRefresh();
+                this.showNotification('Auto-refresh disabled', 'warning');
+            }
+        },
+        
+        startAutoRefresh() {
+            this.autoRefreshInterval = setInterval(() => {
+                this.refreshHealth();
+            }, 30000);
+        },
+        
+        stopAutoRefresh() {
+            if (this.autoRefreshInterval) {
+                clearInterval(this.autoRefreshInterval);
+                this.autoRefreshInterval = null;
+            }
+        },
+        
+        updateTimestamp() {
+            this.lastUpdate = new Date().toLocaleTimeString();
+        },
+        
+        updateOverallStatus() {
+            const criticalThreshold = 90;
+            const warningThreshold = 80;
+            
+            const maxUsage = Math.max(
+                this.healthMetrics.cpu_usage,
+                this.healthMetrics.memory_usage,
+                this.healthMetrics.disk_usage
+            );
+            
+            if (maxUsage >= criticalThreshold) {
+                this.overallStatus = 'critical';
+            } else if (maxUsage >= warningThreshold) {
+                this.overallStatus = 'warning';
+            } else {
+                this.overallStatus = 'healthy';
+            }
+        },
+        
+        getHealthStatus(value, warningThreshold, criticalThreshold) {
+            if (value >= criticalThreshold) return 'critical';
+            if (value >= warningThreshold) return 'warning';
+            return 'healthy';
+        },
+        
+        getStatusText(value, warningThreshold, criticalThreshold) {
+            if (value >= criticalThreshold) return 'Critical';
+            if (value >= warningThreshold) return 'Warning';
+            return 'Healthy';
+        },
+        
+        exportReport() {
+            const report = {
+                timestamp: new Date().toISOString(),
+                system_info: this.systemInfo,
+                health_metrics: this.healthMetrics,
+                services: this.services,
+                overall_status: this.overallStatus
+            };
+            
+            const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `system_health_report_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            this.showNotification('Health report exported successfully', 'success');
+        },
+        
+        showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                    <span style="font-weight: 600;">${message}</span>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => notification.classList.add('show'), 100);
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => document.body.removeChild(notification), 300);
+            }, 3000);
+        }
+    }
+}
+</script>
+{% endblock %}

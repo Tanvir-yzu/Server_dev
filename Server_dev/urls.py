@@ -12,6 +12,7 @@ urlpatterns = [
     #path('devops/', include('DevOps.urls')),
     path('', include('DevOps.urls')),
     path('collaboration/', include('collaboration.urls')),
+    path('system/', include('System.urls')),  # Add System app URLs
 
 
 
