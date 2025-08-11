@@ -66,6 +66,7 @@ INSTALLED_APPS = [
     'DevOps', 
     'collaboration',
     'System',
+    'servercontrol',
 ]
 
 MIDDLEWARE = [
