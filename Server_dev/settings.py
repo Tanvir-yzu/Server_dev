@@ -143,8 +143,14 @@ SITE_ID = 1
 ACCOUNT_LOGIN_METHODS = {'email'}  # ✅ Only allow login with email
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1', 'password2']  # ✅ email* = required & used for login
 
+# ✅ Correct & Modern Settings (No Deprecations)
+ACCOUNT_AUTHENTICATION_METHOD = 'email'  # Changed from ACCOUNT_LOGIN_METHODS
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_SIGNUP_EMAIL_ENTER_TWICE = False
+ACCOUNT_SESSION_REMEMBER = True
 ACCOUNT_UNIQUE_EMAIL = True
-ACCOUNT_EMAIL_VERIFICATION = 'mandatory'  # ✅ User MUST verify email before accessing site
+ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 
 ACCOUNT_LOGOUT_ON_GET = True
 ACCOUNT_RATE_LIMITS = {
@@ -178,6 +184,12 @@ SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'
 SOCIALACCOUNT_AUTO_SIGNUP = True
 SOCIALACCOUNT_EMAIL_REQUIRED = True
 SOCIALACCOUNT_STORE_TOKENS = True  # Store OAuth tokens for later use
+
+# Optional: Additional allauth settings
+ACCOUNT_SIGNUP_EMAIL_ENTER_TWICE = False  # Don't require email confirmation during signup
+ACCOUNT_SESSION_REMEMBER = True  # Remember user sessions
+ACCOUNT_LOGIN_ATTEMPTS_LIMIT = 5  # Limit login attempts
+ACCOUNT_LOGIN_ATTEMPTS_TIMEOUT = 300  # 5 minutes timeout
 # ======================
 # Email Configuration (SMTP)
 # ======================
