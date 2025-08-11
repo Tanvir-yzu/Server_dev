@@ -570,7 +570,7 @@
                                 <span>Or continue with</span>
                             </div>
 
-                            {% comment %} <div class="row g-3">
+                            <div class="row g-3">
                                 <!-- Google Login -->
                                 <div class="col-6">
                                     <a href="{% provider_login_url 'google' %}" class="btn btn-google">
@@ -581,14 +581,15 @@
                                     </a>
                                 </div>
 
-                                <!-- GitHub Login -->
+                                 <!-- GitHub Login -->
+                                 {% comment %} href="{% provider_login_url 'github' %}" {% endcomment %}
                                 <div class="col-6">
-                                    <a href="{% provider_login_url 'github' %}" class="btn btn-google" style="background: #24292e; color: white; border: none;">
+                                    <a  class="btn btn-google" style="background: #24292e; color: white; border: none;">
                                         <i class="fab fa-github me-2"></i>
                                         GitHub
                                     </a>
-                                </div>
-                            </div> {% endcomment %}
+                                </div> 
+                            </div> 
                                                         <!-- Register Link -->
                             <div class="text-center mt-4">
                                 <p class="mb-3" style="color: #6b7280; font-size: 0.875rem;">Don't have an account?</p>
