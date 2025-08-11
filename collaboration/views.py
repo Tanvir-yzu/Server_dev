@@ -39,7 +39,12 @@ def log_collaboration_action(action_type):
                 request = args[0].request
                 user = request.user
                 # Try to get project_id from kwargs or view
-                project_id = kwargs.get('project_id') or getattr(args[0], 'project', {}).get('id', None)
+                project_id = kwargs.get('project_id')
+                if not project_id and hasattr(args[0], 'project'):
+                    # If project is a model instance, get its id
+                    project = getattr(args[0], 'project')
+                    if hasattr(project, 'id'):
+                        project_id = project.id
             elif hasattr(args[0], 'user'):
                 request = args[0]
                 user = request.user
@@ -461,8 +466,9 @@ class ProjectCollaboratorUpdateView(LoginRequiredMixin, ProjectCollaboratorMixin
         
         messages.success(
             self.request, 
-            f'Updated {form.instance.user.full_name}\'s role to {form.instance.get_role_display()}'
+            f'Updated {form.instance.user.get_full_name()}\'s role to {form.instance.get_role_display()}'
         )
+        
         return result
     
     def get_success_url(self):
@@ -471,6 +477,7 @@ class ProjectCollaboratorUpdateView(LoginRequiredMixin, ProjectCollaboratorMixin
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['project'] = self.project
+        context['collaborator'] = self.get_object()
         return context
 
 
@@ -493,21 +500,19 @@ class ProjectCollaboratorDeleteView(LoginRequiredMixin, ProjectCollaboratorMixin
     @log_collaboration_action("COLLABORATOR_DELETE")
     def delete(self, request, *args, **kwargs):
         collaborator = self.get_object()
-        user_name = collaborator.user.full_name
-        user_email = collaborator.user.email
         
-        logger.warning(f"Removing collaborator - User: {user_email} ({user_name}) - Project: {self.project.project_name} - Removed by: {request.user.email}")
+        logger.info(f"Removing collaborator - User: {collaborator.user.email} - Project: {self.project.project_name} - Removed by: {request.user.email}")
         
-        response = super().delete(request, *args, **kwargs)
+        result = super().delete(request, *args, **kwargs)
         
-        logger.info(f"Collaborator removed successfully - User: {user_email} ({user_name}) - Project: {self.project.project_name}")
+        logger.info(f"Collaborator removed successfully - User: {collaborator.user.email} - Project: {self.project.project_name}")
         
         messages.success(
             request, 
-            f'{user_name} has been removed from the project'
+            f'Removed {collaborator.user.get_full_name()} from {self.project.project_name}'
         )
         
-        return response
+        return result
     
     def get_success_url(self):
         return reverse('collaboration:collaborator_list', kwargs={'project_id': self.project.pk})
@@ -515,367 +520,198 @@ class ProjectCollaboratorDeleteView(LoginRequiredMixin, ProjectCollaboratorMixin
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['project'] = self.project
+        context['collaborator'] = self.get_object()
         return context
 
 
-# AJAX Views
+# AJAX Views for dynamic functionality
 @login_required
-@log_collaboration_action("INVITATION_RESEND_AJAX")
-def resend_invitation_ajax(request, invitation_id):
-    """Resend an invitation via AJAX"""
-    logger.info(f"AJAX resend invitation request - ID: {invitation_id} - User: {request.user.email}")
-    
+@log_collaboration_action("INVITATION_CANCEL")
+def cancel_invitation_ajax(request, project_id, invitation_id):
+    """Cancel a project invitation via AJAX"""
     if request.method != 'POST':
-        logger.warning(f"Invalid method for resend invitation - Method: {request.method} - User: {request.user.email}")
-        return JsonResponse({'success': False, 'error': 'Invalid method'})
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
     
-    invitation = get_object_or_404(ProjectInvitation, pk=invitation_id)
+    project = get_object_or_404(Project, pk=project_id)
+    invitation = get_object_or_404(ProjectInvitation, pk=invitation_id, project=project)
     
-    logger.debug(f"Resending invitation - ID: {invitation.id} - Project: {invitation.project.project_name} - Status: {invitation.status}")
+    logger.debug(f"AJAX cancel invitation - User: {request.user.email} - Invitation ID: {invitation_id} - Project: {project.project_name}")
     
     # Check permissions
-    if not (invitation.project.owner == request.user or 
-            ProjectCollaborator.objects.filter(
-                project=invitation.project, 
-                user=request.user, 
-                role='admin'
-            ).exists()):
-        logger.warning(f"Permission denied for resend invitation - ID: {invitation_id} - User: {request.user.email}")
-        return JsonResponse({'success': False, 'error': 'Permission denied'})
-    
-    if invitation.status != 'pending':
-        logger.warning(f"Cannot resend non-pending invitation - ID: {invitation_id} - Status: {invitation.status}")
-        return JsonResponse({'success': False, 'error': 'Invitation is not pending'})
-    
-    try:
-        # Update expiration date
-        invitation.expires_at = timezone.now() + timezone.timedelta(days=30)
-        invitation.save()
-        
-        logger.info(f"Invitation resent successfully - ID: {invitation_id} - New expiration: {invitation.expires_at}")
-        
-        # Resend email (implement email sending logic here)
-        # send_invitation_email(invitation)
-        
-        return JsonResponse({
-            'success': True, 
-            'message': 'Invitation resent successfully'
-        })
-        
-    except Exception as e:
-        logger.error(f"Failed to resend invitation - ID: {invitation_id} - Error: {str(e)}")
-        return JsonResponse({'success': False, 'error': str(e)})
-
-
-@login_required
-@log_collaboration_action("INVITATION_CANCEL_AJAX")
-def cancel_invitation_ajax(request, invitation_id):
-    """Cancel an invitation via AJAX"""
-    logger.info(f"AJAX cancel invitation request - ID: {invitation_id} - User: {request.user.email}")
-    
-    if request.method != 'POST':
-        logger.warning(f"Invalid method for cancel invitation - Method: {request.method} - User: {request.user.email}")
-        return JsonResponse({'success': False, 'error': 'Invalid method'})
-    
-    invitation = get_object_or_404(ProjectInvitation, pk=invitation_id)
-    
-    logger.debug(f"Cancelling invitation - ID: {invitation.id} - Project: {invitation.project.project_name} - Status: {invitation.status}")
-    
-    # Check permissions
-    if not (invitation.project.owner == request.user or 
-            ProjectCollaborator.objects.filter(
-                project=invitation.project, 
-                user=request.user, 
-                role='admin'
-            ).exists()):
-        logger.warning(f"Permission denied for cancel invitation - ID: {invitation_id} - User: {request.user.email}")
-        return JsonResponse({'success': False, 'error': 'Permission denied'})
+    if not (project.owner == request.user or 
+            (hasattr(request.user, 'projectcollaborator_set') and 
+             request.user.projectcollaborator_set.filter(project=project, role='admin').exists())):
+        logger.warning(f"Permission denied for user {request.user.email} to cancel invitation {invitation_id} in project {project.project_name}")
+        return JsonResponse({'error': 'Permission denied'}, status=403)
     
     if invitation.status != 'pending':
         logger.warning(f"Cannot cancel non-pending invitation - ID: {invitation_id} - Status: {invitation.status}")
-        return JsonResponse({'success': False, 'error': 'Invitation is not pending'})
+        return JsonResponse({'error': 'Cannot cancel this invitation'}, status=400)
     
     try:
-        invitation.status = 'expired'
-        invitation.save()
+        invitation.cancel()
         
-        logger.info(f"Invitation cancelled successfully - ID: {invitation_id}")
+        logger.info(f"Invitation cancelled successfully - ID: {invitation_id} - Project: {project.project_name} - Cancelled by: {request.user.email}")
         
         return JsonResponse({
-            'success': True, 
-            'message': 'Invitation cancelled successfully'
+            'success': True,
+            'message': f'Invitation to {invitation.recipient_display} has been cancelled'
         })
         
     except Exception as e:
         logger.error(f"Failed to cancel invitation - ID: {invitation_id} - Error: {str(e)}")
-        return JsonResponse({'success': False, 'error': str(e)})
+        return JsonResponse({'error': str(e)}, status=500)
 
 
 @login_required
 @log_collaboration_action("COLLABORATOR_ROLE_UPDATE_AJAX")
-def update_collaborator_role_ajax(request, collaborator_id):
+def update_collaborator_role_ajax(request, project_id, collaborator_id):
     """Update collaborator role via AJAX"""
-    logger.info(f"AJAX update collaborator role request - ID: {collaborator_id} - User: {request.user.email}")
-    
     if request.method != 'POST':
-        logger.warning(f"Invalid method for update collaborator role - Method: {request.method} - User: {request.user.email}")
-        return JsonResponse({'success': False, 'error': 'Invalid method'})
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
     
-    collaborator = get_object_or_404(ProjectCollaborator, pk=collaborator_id)
-    new_role = request.POST.get('role')
-    old_role = collaborator.role
+    project = get_object_or_404(Project, pk=project_id)
+    collaborator = get_object_or_404(ProjectCollaborator, pk=collaborator_id, project=project)
     
-    logger.debug(f"Updating collaborator role via AJAX - Collaborator: {collaborator.user.email} - Old role: {old_role} - New role: {new_role} - Project: {collaborator.project.project_name}")
-    
-    if new_role not in ['viewer', 'contributor', 'admin']:
-        logger.warning(f"Invalid role specified - Role: {new_role} - Collaborator ID: {collaborator_id}")
-        return JsonResponse({'success': False, 'error': 'Invalid role'})
+    logger.debug(f"AJAX update collaborator role - User: {request.user.email} - Collaborator: {collaborator.user.email} - Project: {project.project_name}")
     
     # Check permissions
-    if not (collaborator.project.owner == request.user or 
-            ProjectCollaborator.objects.filter(
-                project=collaborator.project, 
-                user=request.user, 
-                role='admin'
-            ).exists()):
-        logger.warning(f"Permission denied for update collaborator role - ID: {collaborator_id} - User: {request.user.email}")
-        return JsonResponse({'success': False, 'error': 'Permission denied'})
+    if not (project.owner == request.user or 
+            (hasattr(request.user, 'projectcollaborator_set') and 
+             request.user.projectcollaborator_set.filter(project=project, role='admin').exists())):
+        logger.warning(f"Permission denied for user {request.user.email} to update collaborator role in project {project.project_name}")
+        return JsonResponse({'error': 'Permission denied'}, status=403)
+    
+    new_role = request.POST.get('role')
+    if new_role not in ['viewer', 'editor', 'admin']:
+        return JsonResponse({'error': 'Invalid role'}, status=400)
     
     try:
+        old_role = collaborator.role
         collaborator.role = new_role
         collaborator.save()
         
-        logger.info(f"Collaborator role updated via AJAX - Collaborator: {collaborator.user.email} - Old role: {old_role} - New role: {new_role} - Project: {collaborator.project.project_name}")
+        logger.info(f"Collaborator role updated via AJAX - User: {collaborator.user.email} - Project: {project.project_name} - Old role: {old_role} - New role: {new_role} - Updated by: {request.user.email}")
         
         return JsonResponse({
-            'success': True, 
-            'message': f'Role updated to {collaborator.get_role_display()}'
+            'success': True,
+            'message': f'Updated {collaborator.user.get_full_name()}\'s role to {collaborator.get_role_display()}',
+            'new_role': new_role,
+            'new_role_display': collaborator.get_role_display()
         })
         
     except Exception as e:
-        logger.error(f"Failed to update collaborator role via AJAX - ID: {collaborator_id} - Error: {str(e)}")
-        return JsonResponse({'success': False, 'error': str(e)})
-
-
-# Dashboard Views
-@login_required
-@log_collaboration_action("MY_INVITATIONS_VIEW")
-def my_invitations(request):
-    """View user's received invitations"""
-    logger.info(f"User {request.user.email} accessing my invitations")
-    
-    invitations = ProjectInvitation.objects.filter(
-        Q(invitee=request.user) | Q(email=request.user.email),
-        status='pending'
-    ).select_related('project', 'inviter').order_by('-created_at')
-    
-    invitation_count = invitations.count()
-    logger.info(f"User {request.user.email} has {invitation_count} pending invitations")
-    
-    return render(request, 'collaboration/my_invitations.html', {
-        'invitations': invitations
-    })
+        logger.error(f"Failed to update collaborator role via AJAX - Collaborator: {collaborator.user.email} - Error: {str(e)}")
+        return JsonResponse({'error': str(e)}, status=500)
 
 
 @login_required
-@log_collaboration_action("MY_COLLABORATIONS_VIEW")
-def my_collaborations(request):
-    """View user's collaborations"""
-    logger.info(f"User {request.user.email} accessing my collaborations")
+@log_collaboration_action("PROJECT_SEARCH_USERS")
+def search_users_ajax(request, project_id):
+    """Search for users to invite to a project via AJAX"""
+    if request.method != 'GET':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
     
-    collaborations = ProjectCollaborator.objects.filter(
-        user=request.user
-    ).select_related('project', 'added_by').order_by('-added_at')
+    project = get_object_or_404(Project, pk=project_id)
     
-    collaboration_count = collaborations.count()
-    logger.info(f"User {request.user.email} is collaborating on {collaboration_count} projects")
+    # Check permissions
+    if not (project.owner == request.user or 
+            (hasattr(request.user, 'projectcollaborator_set') and 
+             request.user.projectcollaborator_set.filter(project=project, role='admin').exists())):
+        return JsonResponse({'error': 'Permission denied'}, status=403)
     
-    return render(request, 'collaboration/my_collaborations.html', {
-        'collaborations': collaborations
-    })
-
-
-# Utility Views
-@login_required
-@log_collaboration_action("SEARCH_USERS_AJAX")
-def search_users_ajax(request):
-    """Search users for invitation via AJAX"""
     query = request.GET.get('q', '').strip()
-    
-    logger.debug(f"AJAX user search request - Query: '{query}' - User: {request.user.email}")
-    
     if len(query) < 2:
-        logger.debug(f"Query too short for user search - Query: '{query}'")
         return JsonResponse({'users': []})
     
+    # Get existing collaborators and invitees to exclude
+    existing_collaborators = ProjectCollaborator.objects.filter(project=project).values_list('user_id', flat=True)
+    pending_invitations = ProjectInvitation.objects.filter(
+        project=project, 
+        status='pending'
+    ).values_list('invitee_id', flat=True)
+    
+    exclude_ids = list(existing_collaborators) + list(pending_invitations) + [project.owner.id]
+    
+    # Search users
     users = User.objects.filter(
-        Q(email__icontains=query) | Q(full_name__icontains=query)
-    ).exclude(id=request.user.id)[:10]
+        Q(email__icontains=query) | 
+        Q(first_name__icontains=query) | 
+        Q(last_name__icontains=query)
+    ).exclude(id__in=exclude_ids)[:10]
     
-    user_data = [{
-        'id': user.id,
-        'email': user.email,
-        'full_name': user.full_name,
-        'display_name': f"{user.full_name} ({user.email})"
-    } for user in users]
+    user_data = []
+    for user in users:
+        user_data.append({
+            'id': user.id,
+            'email': user.email,
+            'full_name': user.get_full_name(),
+            'display_name': f"{user.get_full_name()} ({user.email})" if user.get_full_name() else user.email
+        })
     
-    logger.info(f"User search completed - Query: '{query}' - Results: {len(user_data)} users - Requested by: {request.user.email}")
+    logger.debug(f"User search - Query: '{query}' - Results: {len(user_data)} - Project: {project.project_name}")
     
     return JsonResponse({'users': user_data})
 
-# Debug/Test Views
-@login_required
-@log_collaboration_action("DEBUG_COLLABORATION_ACCESS")
-def debug_collaboration_access(request, project_id):
-    """Debug view to check collaboration access permissions"""
-    logger.info(f"Debug collaboration access requested by {request.user.email} for project ID: {project_id}")
-    
-    try:
-        project = Project.objects.get(id=project_id)
-        
-        # Check if user is owner
-        is_owner = project.owner == request.user
-        
-        # Check if user is collaborator
-        is_collaborator = False
-        collaborator_role = None
-        collaborator_id = None
-        try:
-            collaborator = ProjectCollaborator.objects.get(project=project, user=request.user)
-            is_collaborator = True
-            collaborator_role = collaborator.role
-            collaborator_id = collaborator.id
-        except ProjectCollaborator.DoesNotExist:
-            pass
-        
-        # Check permissions
-        can_view_invitations = is_owner or is_collaborator
-        can_manage_invitations = is_owner or (is_collaborator and collaborator_role == 'admin')
-        can_view_collaborators = is_owner or is_collaborator
-        can_manage_collaborators = is_owner or (is_collaborator and collaborator_role == 'admin')
-        
-        # Get invitation and collaborator counts
-        invitation_count = ProjectInvitation.objects.filter(project=project).count()
-        collaborator_count = ProjectCollaborator.objects.filter(project=project).count()
-        pending_invitations = ProjectInvitation.objects.filter(project=project, status='pending').count()
-        
-        debug_info = {
-            'project_exists': True,
-            'project_id': project.id,
-            'project_name': project.project_name,
-            'project_owner': project.owner.email,
-            'current_user': request.user.email,
-            'is_owner': is_owner,
-            'is_collaborator': is_collaborator,
-            'collaborator_role': collaborator_role,
-            'collaborator_id': collaborator_id,
-            'can_view_invitations': can_view_invitations,
-            'can_manage_invitations': can_manage_invitations,
-            'can_view_collaborators': can_view_collaborators,
-            'can_manage_collaborators': can_manage_collaborators,
-            'invitation_count': invitation_count,
-            'collaborator_count': collaborator_count,
-            'pending_invitations': pending_invitations,
-            'project_is_active': project.is_active,
-        }
-        
-        logger.info(f"Debug collaboration info generated for project {project_id}: {debug_info}")
-        
-    except Project.DoesNotExist:
-        debug_info = {
-            'project_exists': False,
-            'project_id': project_id,
-            'current_user': request.user.email,
-        }
-        
-        logger.warning(f"Debug collaboration access requested for non-existent project {project_id} by user {request.user.email}")
-    
-    except Exception as e:
-        logger.error(f"Error in debug collaboration access for project {project_id} by user {request.user.email}: {str(e)}")
-        debug_info = {
-            'error': str(e),
-            'project_id': project_id,
-            'current_user': request.user.email,
-        }
-    
-    return JsonResponse(debug_info, json_dumps_params={'indent': 2})
 
 @login_required
-@log_collaboration_action("DEBUG_USER_COLLABORATIONS")
-def list_user_collaborations_debug(request):
-    """Debug view to list all collaborations for current user"""
-    logger.info(f"Debug user collaborations list requested by {request.user.email}")
+@log_collaboration_action("COLLABORATION_DEBUG")
+def debug_collaboration_view(request, project_id):
+    """Debug view for collaboration system - only available in DEBUG mode"""
+    if not settings.DEBUG:
+        return HttpResponseForbidden("Debug view only available in DEBUG mode")
     
+    project = get_object_or_404(Project, pk=project_id)
+    
+    # Gather debug information
+    debug_info = {
+        'project': {
+            'id': project.id,
+            'name': project.project_name,
+            'owner': project.owner.email,
+            'created_at': project.created_at.isoformat() if hasattr(project, 'created_at') else None,
+        },
+        'collaborators': [],
+        'invitations': [],
+        'user_permissions': {
+            'is_owner': project.owner == request.user,
+            'is_authenticated': request.user.is_authenticated,
+            'user_email': request.user.email if request.user.is_authenticated else None,
+        }
+    }
+    
+    # Get collaborators
+    collaborators = ProjectCollaborator.objects.filter(project=project).select_related('user', 'added_by')
+    for collab in collaborators:
+        debug_info['collaborators'].append({
+            'id': collab.id,
+            'user_email': collab.user.email,
+            'role': collab.role,
+            'added_by': collab.added_by.email if collab.added_by else None,
+            'added_at': collab.added_at.isoformat(),
+        })
+    
+    # Get invitations
+    invitations = ProjectInvitation.objects.filter(project=project).select_related('inviter', 'invitee')
+    for invitation in invitations:
+        debug_info['invitations'].append({
+            'id': invitation.id,
+            'email': invitation.email,
+            'invitee_email': invitation.invitee.email if invitation.invitee else None,
+            'inviter_email': invitation.inviter.email,
+            'status': invitation.status,
+            'created_at': invitation.created_at.isoformat(),
+            'expires_at': invitation.expires_at.isoformat() if invitation.expires_at else None,
+            'is_expired': invitation.is_expired,
+        })
+    
+    # Check user's role
     try:
-        # All projects user owns
-        owned_projects = Project.objects.filter(owner=request.user)
-        
-        # All projects user collaborates on
-        collaborations = ProjectCollaborator.objects.filter(user=request.user).select_related('project')
-        
-        # All invitations user has received
-        received_invitations = ProjectInvitation.objects.filter(
-            Q(invitee=request.user) | Q(email=request.user.email)
-        ).select_related('project', 'inviter')
-        
-        # All invitations user has sent
-        sent_invitations = ProjectInvitation.objects.filter(
-            inviter=request.user
-        ).select_related('project', 'invitee')
-        
-        debug_info = {
-            'current_user': request.user.email,
-            'owned_projects': [
-                {
-                    'id': p.id,
-                    'name': p.project_name,
-                    'is_active': p.is_active
-                } for p in owned_projects
-            ],
-            'collaborations': [
-                {
-                    'id': c.id,
-                    'project_id': c.project.id,
-                    'project_name': c.project.project_name,
-                    'role': c.role,
-                    'added_at': c.added_at.isoformat(),
-                    'added_by': c.added_by.email if c.added_by else None,
-                    'project_is_active': c.project.is_active
-                } for c in collaborations
-            ],
-            'received_invitations': [
-                {
-                    'id': i.id,
-                    'project_id': i.project.id,
-                    'project_name': i.project.project_name,
-                    'status': i.status,
-                    'inviter': i.inviter.email,
-                    'created_at': i.created_at.isoformat(),
-                    'expires_at': i.expires_at.isoformat() if i.expires_at else None,
-                    'is_expired': i.is_expired
-                } for i in received_invitations
-            ],
-            'sent_invitations': [
-                {
-                    'id': i.id,
-                    'project_id': i.project.id,
-                    'project_name': i.project.project_name,
-                    'status': i.status,
-                    'recipient': i.email or (i.invitee.email if i.invitee else None),
-                    'created_at': i.created_at.isoformat(),
-                    'expires_at': i.expires_at.isoformat() if i.expires_at else None,
-                    'is_expired': i.is_expired
-                } for i in sent_invitations
-            ],
-        }
-        
-        logger.info(f"Debug user collaborations info generated for {request.user.email}: {len(debug_info['owned_projects'])} owned, {len(debug_info['collaborations'])} collaborations, {len(debug_info['received_invitations'])} received invitations, {len(debug_info['sent_invitations'])} sent invitations")
-        
-    except Exception as e:
-        logger.error(f"Error in debug user collaborations for user {request.user.email}: {str(e)}")
-        debug_info = {
-            'error': str(e),
-            'current_user': request.user.email,
-        }
+        user_collab = ProjectCollaborator.objects.get(project=project, user=request.user)
+        debug_info['user_permissions']['role'] = user_collab.role
+    except ProjectCollaborator.DoesNotExist:
+        debug_info['user_permissions']['role'] = None
+    
+    logger.info(f"Debug view accessed - User: {request.user.email} - Project: {project.project_name}")
     
     return JsonResponse(debug_info, json_dumps_params={'indent': 2})
