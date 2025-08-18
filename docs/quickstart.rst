@@ -22,7 +22,7 @@ Key Features
 API Endpoints
 -------------
 
-The application provides various API endpoints for different modules:
+The application provides various API  endpoints for different modules:
 
 * ``/auth/`` - Authentication related endpoints
 * ``/collaboration/`` - Collaboration features
