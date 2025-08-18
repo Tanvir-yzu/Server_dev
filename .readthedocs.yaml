@@ -1,0 +1,70 @@
+# .readthedocs.yaml
+# Read the Docs configuration file
+# See https://docs.readthedocs.io/en/stable/config-file/v2.html for details
+
+# Required
+version: 2
+
+# Set the version of Python and other tools you might need
+build:
+  os: ubuntu-22.04
+  tools:
+    python: "3.11"
+    # You can also specify Node.js if needed
+    # nodejs: "18"
+  jobs:
+    post_create_environment:
+      # Install poetry if you're using it
+      # - pip install poetry
+      # Install any system dependencies
+      - apt-get update
+      - apt-get install -y libpq-dev
+    post_install:
+      # Install your package normally
+      - pip install -e .
+      # Generate any additional files/data here
+      # - python manage.py collectstatic --noinput
+
+# Build documentation in the docs/ directory with Sphinx
+sphinx:
+  builder: html
+  configuration: docs/conf.py
+  fail_on_warning: true
+
+# If using MkDocs, uncomment this instead:
+# mkdocs:
+#   configuration: mkdocs.yml
+#   fail_on_warning: true
+
+# Optionally declare the Python requirements required to build your docs
+python:
+  install:
+    - requirements: requirements.txt
+    - requirements: docs/requirements.txt
+    # Install your package
+    - method: pip
+      path: .
+      extra_requirements:
+        - docs
+
+# Optional but recommended, pin the Python version used to build docs
+# This ensures docs are built with a consistent version
+formats:
+  - pdf
+  - epub
+
+# Submodules config (if you have git submodules)
+# submodules:
+#   include: all
+#   recursive: true
+
+# Search config
+search:
+  ranking:
+    api/v2/search/: -1
+    api/v1/search/: -2
+
+# Social cards (for better sharing)
+# Requires sphinx-social-cards extension
+# social_cards:
+#   enable: true
