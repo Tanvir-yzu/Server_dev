@@ -1,0 +1,12 @@
+{% if hijack_history %}
+<div class="hijack-notification alert alert-warning" style="position: fixed; top: 0; left: 0; right: 0; z-index: 9999; margin: 0; border-radius: 0;">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <strong>You are hijacking {{ hijack_history.hijacked_user.get_full_name|default:hijack_history.hijacked_user.username }}</strong>
+                <a href="{% url 'hijack:release_hijack' %}" class="btn btn-sm btn-danger pull-right">Release hijack</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}

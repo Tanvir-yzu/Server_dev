@@ -1,0 +1,3 @@
+<a href="{% url 'hijack:login_with_id' user_id=user.pk %}" class="btn btn-warning btn-sm">
+    <i class="fa fa-user-secret"></i> Hijack {{ user.get_full_name|default:user.username }}
+</a>

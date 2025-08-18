@@ -46,6 +46,7 @@ SOCIALACCOUNT_LOGIN_ON_GET = True  # Redirect to the login page after successful
 INSTALLED_APPS = [
     'jazzmin',  # Admin theme (install via pip)
     'django.contrib.admin',
+    'hijack.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -67,6 +68,7 @@ INSTALLED_APPS = [
     'collaboration',
     'System',
     'servercontrol',
+    'hijack',
 ]
 
 MIDDLEWARE = [
@@ -78,8 +80,9 @@ MIDDLEWARE = [
     'allauth.account.middleware.AccountMiddleware',  # Required by allauth
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'hijack.middleware.HijackUserMiddleware',
 ]
-
+HIJACK_PERMISSION_CHECK = "hijack.permissions.superusers_and_staff"
 ROOT_URLCONF = 'Server_dev.urls'
 
 # ======================
