@@ -18,7 +18,7 @@
             display: none;
         }
         .code-block {
-            background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
         }
         .tab-transition {
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -30,29 +30,85 @@
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.05); }
         }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .code-syntax-keyword { color: #c084fc; }
+        .code-syntax-string { color: #34d399; }
+        .code-syntax-comment { color: #6b7280; }
+        .code-syntax-function { color: #60a5fa; }
+        .code-syntax-variable { color: #fbbf24; }
+        .animate-float {
+            animation: float 3s ease-in-out infinite;
+        }
+        .animate-slide-in {
+            animation: slideInUp 0.6s ease-out forwards;
+        }
+        .shimmer-effect {
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            background-size: 200% 100%;
+            animation: shimmer 2s infinite;
+        }
     </style>
 </head>
-<body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen" x-data="serverCodeApp()">
+<body class="bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 min-h-screen relative overflow-x-hidden" x-data="serverCodeApp()">
+    <!-- Animated Background Elements -->
+    <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
+        <div class="absolute top-20 left-10 w-96 h-96 bg-blue-200/40 rounded-full blur-3xl animate-pulse"></div>
+        <div class="absolute bottom-20 right-10 w-96 h-96 bg-purple-200/40 rounded-full blur-3xl animate-pulse" style="animation-delay: 2s;"></div>
+        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-cyan-200/30 rounded-full blur-3xl" style="animation: float 6s ease-in-out infinite;"></div>
+    </div>
+
     <!-- Navigation -->
-    <nav class="bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-xl">
+    <nav class="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 text-white shadow-xl relative z-10">
         <div class="container mx-auto px-4">
             <div class="flex justify-between items-center py-4">
                 <h1 class="text-lg sm:text-xl font-bold flex items-center">
-                    <a href="/"><i class="fas fa-server mr-2 text-blue-200"></i>DevOps Dashboard</a>
+                    <a href="/" class="flex items-center group">
+                        <i class="fas fa-rocket mr-2 text-blue-200 group-hover:animate-bounce transition-transform"></i>
+                        <span class="bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">DevOps Dashboard</span>
+                    </a>
                 </h1>
                 
                 <!-- Desktop Menu -->
                 <div class="hidden md:flex space-x-2">
-                    <a href="{% url 'devops:dashboard' %}" class="hover:bg-blue-500 transition-all duration-200 px-4 py-2 rounded-lg flex items-center">
+                    <a href="{% url 'devops:dashboard' %}" class="hover:bg-white/20 hover:shadow-lg transition-all duration-300 px-4 py-2 rounded-xl flex items-center transform hover:-translate-y-0.5 backdrop-blur-sm">
                         <i class="fas fa-home mr-2"></i>Dashboard
                     </a>
-                    <a href="{% url 'devops:project_list' %}" class="hover:bg-blue-500 transition-all duration-200 px-4 py-2 rounded-lg flex items-center">
+                    <a href="{% url 'devops:project_list' %}" class="hover:bg-white/20 hover:shadow-lg transition-all duration-300 px-4 py-2 rounded-xl flex items-center transform hover:-translate-y-0.5 backdrop-blur-sm">
                         <i class="fas fa-list mr-2"></i>Projects
                     </a>
-                    <a href="{% url 'profile' %}" class="hover:bg-blue-500 transition-all duration-200 px-4 py-2 rounded-lg flex items-center">
+                    <a href="{% url 'profile' %}" class="hover:bg-white/20 hover:shadow-lg transition-all duration-300 px-4 py-2 rounded-xl flex items-center transform hover:-translate-y-0.5 backdrop-blur-sm">
                         <i class="fas fa-user mr-2"></i>Profile
                     </a>
-                    <a href="{% url 'logout' %}" class="hover:bg-blue-500 transition-all duration-200 px-4 py-2 rounded-lg flex items-center">
+                    <a href="{% url 'logout' %}" class="hover:bg-red-500 hover:shadow-lg transition-all duration-300 px-4 py-2 rounded-xl flex items-center transform hover:-translate-y-0.5 backdrop-blur-sm">
                         <i class="fas fa-sign-out-alt mr-2"></i>Logout
                     </a>
                 </div>
@@ -92,72 +148,72 @@
     </nav>
 
     <!-- Breadcrumb -->
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-4 relative z-10">
         <nav class="flex" aria-label="Breadcrumb">
-            <ol class="inline-flex items-center space-x-1 md:space-x-3">
+            <ol class="inline-flex items-center space-x-1 md:space-x-3 glass-card px-4 py-2 rounded-full">
                 <li class="inline-flex items-center">
-                    <a href="{% url 'devops:dashboard' %}" class="text-gray-700 hover:text-blue-600 inline-flex items-center">
+                    <a href="{% url 'devops:dashboard' %}" class="text-gray-700 hover:text-blue-600 inline-flex items-center transition-colors duration-200">
                         <i class="fas fa-home mr-2"></i>
                         Dashboard
                     </a>
                 </li>
                 <li>
                     <div class="flex items-center">
-                        <i class="fas fa-chevron-right text-gray-400 mx-2"></i>
-                        <a href="{% url 'devops:project_list' %}" class="text-gray-700 hover:text-blue-600">
+                        <i class="fas fa-chevron-right text-gray-400 mx-2 text-sm"></i>
+                        <a href="{% url 'devops:project_list' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">
                             Projects
                         </a>
                     </div>
                 </li>
                 <li>
                     <div class="flex items-center">
-                        <i class="fas fa-chevron-right text-gray-400 mx-2"></i>
-                        <a href="{% url 'devops:project_detail' project.pk %}" class="text-gray-700 hover:text-blue-600">
+                        <i class="fas fa-chevron-right text-gray-400 mx-2 text-sm"></i>
+                        <a href="{% url 'devops:project_detail' project.pk %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">
                             {{ project.project_name }}
                         </a>
                     </div>
                 </li>
                 <li aria-current="page">
                     <div class="flex items-center">
-                        <i class="fas fa-chevron-right text-gray-400 mx-2"></i>
-                        <span class="text-gray-500">Server Code</span>
+                        <i class="fas fa-chevron-right text-gray-400 mx-2 text-sm"></i>
+                        <span class="text-gray-500 font-medium">Server Code</span>
                     </div>
                 </li>
             </ol>
         </nav>
     </div>
     <!-- Main Content -->
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 relative z-10">
         <!-- Header -->
-        <div class="bg-white rounded-xl shadow-lg p-6 mb-8 border border-gray-100">
+        <div class="glass-card rounded-2xl shadow-xl p-6 sm:p-8 mb-8 animate-slide-in border border-white/50">
             <div class="flex flex-col lg:flex-row lg:justify-between lg:items-center space-y-4 lg:space-y-0">
                 <div class="space-y-3">
                     <h2 class="text-3xl sm:text-4xl font-bold text-gray-800 flex items-center">
-                        <i class="fas fa-cogs mr-3 text-blue-600"></i>Server Configuration
+                        <span class="inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl mr-3 sm:mr-4 shadow-lg">
+                            <i class="fas fa-cogs text-white text-xl sm:text-2xl"></i>
+                        </span>
+                        <span class="gradient-text">Server Configuration</span>
                     </h2>
-                    <p class="text-xl text-gray-600 flex items-center">
+                    <p class="text-xl text-gray-600 flex items-center ml-1">
                         <i class="fas fa-project-diagram mr-2 text-green-600"></i>{{ project.project_name }}
                     </p>
-                    <div class="flex flex-wrap gap-4 text-sm text-gray-500">
-                        <span class="flex items-center bg-gray-50 px-3 py-1 rounded-full">
+                    <div class="flex flex-wrap gap-3 sm:gap-4 text-sm">
+                        <span class="flex items-center bg-gradient-to-r from-gray-50 to-gray-100 px-3 py-1.5 rounded-full border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
                             <i class="fab fa-github mr-2 text-gray-700"></i>{{ project.github_username }}
                         </span>
-                        <span class="flex items-center bg-gray-50 px-3 py-1 rounded-full">
+                        <span class="flex items-center bg-gradient-to-r from-blue-50 to-blue-100 px-3 py-1.5 rounded-full border border-blue-200 shadow-sm hover:shadow-md transition-shadow">
                             <i class="fas fa-globe mr-2 text-blue-600"></i>{{ project.domain_name }}
                         </span>
-                        <span class="flex items-center bg-gray-50 px-3 py-1 rounded-full">
+                        <span class="flex items-center bg-gradient-to-r from-green-50 to-green-100 px-3 py-1.5 rounded-full border border-green-200 shadow-sm hover:shadow-md transition-shadow">
                             <i class="fas fa-database mr-2 text-green-600"></i>{{ project.database_name }}
                         </span>
                     </div>
                 </div>
                 <div class="flex flex-col sm:flex-row gap-3">
-                    <a href="{% url 'devops:project_detail' project.pk %}" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-200 text-center shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
+                    <a href="{% url 'devops:project_detail' project.pk %}" class="bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 text-center shadow-lg hover:shadow-xl hover:shadow-gray-500/30 transform hover:-translate-y-1 flex items-center justify-center">
                         <i class="fas fa-eye mr-2"></i>View Details
                     </a>
-                    {% comment %} <a href="{% url 'devops:project_edit' project.pk %}" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-200 text-center shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
-                        <i class="fas fa-edit mr-2"></i>Edit Project
-                    </a> {% endcomment %}
-                    <a href="{% url 'devops:project_list' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-200 text-center shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
+                    <a href="{% url 'devops:project_list' %}" class="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 text-center shadow-lg hover:shadow-xl hover:shadow-blue-500/30 transform hover:-translate-y-1 flex items-center justify-center">
                         <i class="fas fa-arrow-left mr-2"></i>Back to List
                     </a>
                 </div>
@@ -165,17 +221,17 @@
         </div>
 
         <!-- Tab System -->
-        <div class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
+        <div class="glass-card rounded-2xl shadow-xl overflow-hidden border border-white/50 animate-slide-in" style="animation-delay: 0.1s;">
             <!-- Tab Navigation -->
-            <div class="border-b border-gray-200 bg-gray-50">
+            <div class="border-b border-gray-200 bg-gradient-to-r from-gray-50 to-blue-50/50">
                 <nav class="flex overflow-x-auto scrollbar-hide">
                     <template x-for="tab in tabs" :key="tab.id">
-                        <button @click="activeTab = tab.id" 
-                                :class="activeTab === tab.id ? 
-                                    'border-blue-500 text-blue-600 bg-white shadow-sm' : 
-                                    'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 hover:bg-gray-100'"
-                                class="whitespace-nowrap py-4 px-4 sm:px-6 border-b-2 font-medium text-xs sm:text-sm tab-transition flex items-center">
-                            <i :class="tab.icon" class="mr-1 sm:mr-2"></i>
+                        <button @click="activeTab = tab.id"
+                                :class="activeTab === tab.id ?
+                                    'border-blue-500 text-blue-600 bg-white shadow-md' :
+                                    'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 hover:bg-white/50'"
+                                class="whitespace-nowrap py-4 px-3 sm:px-6 border-b-2 font-medium text-xs sm:text-sm tab-transition flex items-center group">
+                            <i :class="tab.icon" class="mr-1 sm:mr-2 group-hover:scale-110 transition-transform"></i>
                             <span class="hidden sm:inline" x-text="tab.fullName"></span>
                             <span class="sm:hidden" x-text="tab.shortName"></span>
                         </button>
@@ -186,25 +242,28 @@
             <!-- Tab Contents -->
             <div class="p-6 sm:p-8">
                 <!-- SSH Key Management Tab -->
-                <div x-show="activeTab === 'ssh-key'" 
+                <div x-show="activeTab === 'ssh-key'"
                      x-transition:enter="transition ease-out duration-300"
                      x-transition:enter-start="opacity-0 transform translate-x-4"
                      x-transition:enter-end="opacity-100 transform translate-x-0"
                      class="space-y-6">
                     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-3 sm:space-y-0">
                         <h3 class="text-2xl font-bold text-gray-800 flex items-center">
-                            <i class="fas fa-key mr-3 text-yellow-600"></i>SSH Key Management
+                            <span class="inline-flex items-center justify-center w-10 h-10 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-xl mr-3 shadow-lg">
+                                <i class="fas fa-key text-white"></i>
+                            </span>
+                            <span class="gradient-text">SSH Key Management</span>
                         </h3>
-                        <button @click="copyToClipboard('ssh-key-code')" 
-                                class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center">
+                        <button @click="copyToClipboard('ssh-key-code')"
+                                class="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-6 py-3 rounded-xl font-medium transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-blue-500/30 transform hover:-translate-y-0.5 flex items-center">
                             <i class="fas fa-copy mr-2"></i>Copy Code
                         </button>
                     </div>
-                    <div class="code-block rounded-xl overflow-hidden shadow-lg">
-                        <div class="bg-gray-800 px-6 py-3 text-gray-300 font-medium flex items-center">
+                    <div class="code-block rounded-xl overflow-hidden shadow-2xl border border-gray-700/50">
+                        <div class="bg-gradient-to-r from-gray-800 to-gray-900 px-6 py-3 text-gray-300 font-medium flex items-center border-b border-gray-700/50">
                             <i class="fas fa-terminal mr-3 text-green-400"></i>SSH Key Setup Commands
                         </div>
-                        <pre id="ssh-key-code" class="text-green-400 p-6 overflow-x-auto text-sm leading-relaxed"><code># Generate SSH key for {{ project.project_name }}
+                        <pre id="ssh-key-code" class="text-green-400 p-6 overflow-x-auto text-sm leading-relaxed font-mono"><code># Generate SSH key for {{ project.project_name }}
 
 🔑 1. Generate Project-Specific SSH Key
 ssh-keygen -t rsa -b 4096 -f ~/.ssh/{{ project.project_name }}
@@ -243,25 +302,28 @@ python manage.py runserver 0.0.0.0:8000</code></pre>
                 </div>
 
                 <!-- Dev Setup Tab -->
-                <div x-show="activeTab === 'dev-setup'" 
+                <div x-show="activeTab === 'dev-setup'"
                      x-transition:enter="transition ease-out duration-300"
                      x-transition:enter-start="opacity-0 transform translate-x-4"
                      x-transition:enter-end="opacity-100 transform translate-x-0"
                      class="space-y-6">
                     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-3 sm:space-y-0">
                         <h3 class="text-2xl font-bold text-gray-800 flex items-center">
-                            <i class="fas fa-code mr-3 text-purple-600"></i>Development Environment Setup
+                            <span class="inline-flex items-center justify-center w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl mr-3 shadow-lg">
+                                <i class="fas fa-code text-white"></i>
+                            </span>
+                            <span class="gradient-text">Development Environment Setup</span>
                         </h3>
-                        <button @click="copyToClipboard('dev-setup-code')" 
-                                class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center">
+                        <button @click="copyToClipboard('dev-setup-code')"
+                                class="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-6 py-3 rounded-xl font-medium transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-blue-500/30 transform hover:-translate-y-0.5 flex items-center">
                             <i class="fas fa-copy mr-2"></i>Copy Code
                         </button>
                     </div>
-                    <div class="code-block rounded-xl overflow-hidden shadow-lg">
-                        <div class="bg-gray-800 px-6 py-3 text-gray-300 font-medium flex items-center">
+                    <div class="code-block rounded-xl overflow-hidden shadow-2xl border border-gray-700/50">
+                        <div class="bg-gradient-to-r from-gray-800 to-gray-900 px-6 py-3 text-gray-300 font-medium flex items-center border-b border-gray-700/50">
                             <i class="fas fa-code mr-3 text-purple-400"></i>Development Setup Commands
                         </div>
-                        <pre id="dev-setup-code" class="text-green-400 p-6 overflow-x-auto text-sm leading-relaxed"><code># Development Environment Setup
+                        <pre id="dev-setup-code" class="text-green-400 p-6 overflow-x-auto text-sm leading-relaxed font-mono"><code># Development Environment Setup
 
 🔧 1. Upgrade pip and install dependencies
 pip install --upgrade pip
@@ -280,25 +342,28 @@ python manage.py runserver 0.0.0.0:8000</code></pre>
                 </div>
 
                 <!-- DB Setup Tab -->
-                <div x-show="activeTab === 'db-setup'" 
+                <div x-show="activeTab === 'db-setup'"
                      x-transition:enter="transition ease-out duration-300"
                      x-transition:enter-start="opacity-0 transform translate-x-4"
                      x-transition:enter-end="opacity-100 transform translate-x-0"
                      class="space-y-6">
                     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-3 sm:space-y-0">
                         <h3 class="text-2xl font-bold text-gray-800 flex items-center">
-                            <i class="fas fa-database mr-3 text-green-600"></i>Database Setup
+                            <span class="inline-flex items-center justify-center w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl mr-3 shadow-lg">
+                                <i class="fas fa-database text-white"></i>
+                            </span>
+                            <span class="gradient-text">Database Setup</span>
                         </h3>
-                        <button @click="copyToClipboard('db-setup-code')" 
-                                class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center">
+                        <button @click="copyToClipboard('db-setup-code')"
+                                class="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-6 py-3 rounded-xl font-medium transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-blue-500/30 transform hover:-translate-y-0.5 flex items-center">
                             <i class="fas fa-copy mr-2"></i>Copy Code
                         </button>
                     </div>
-                    <div class="code-block rounded-xl overflow-hidden shadow-lg">
-                        <div class="bg-gray-800 px-6 py-3 text-gray-300 font-medium flex items-center">
+                    <div class="code-block rounded-xl overflow-hidden shadow-2xl border border-gray-700/50">
+                        <div class="bg-gradient-to-r from-gray-800 to-gray-900 px-6 py-3 text-gray-300 font-medium flex items-center border-b border-gray-700/50">
                             <i class="fas fa-database mr-3 text-green-400"></i>PostgreSQL Database Configuration
                         </div>
-                        <pre id="db-setup-code" class="text-green-400 p-6 overflow-x-auto text-sm leading-relaxed"><code># Database Setup
+                        <pre id="db-setup-code" class="text-green-400 p-6 overflow-x-auto text-sm leading-relaxed font-mono"><code># Database Setup
 
 🗄️ 1. Creating PostgreSQL database
 sudo -u postgres psql 
@@ -338,25 +403,28 @@ pg_dump {{ project.database_name }} > {{ project.database_name }}_backup.sql
                 </div>
 
                 <!-- Deploy Setup Tab -->
-                <div x-show="activeTab === 'deploy-setup'" 
+                <div x-show="activeTab === 'deploy-setup'"
                      x-transition:enter="transition ease-out duration-300"
                      x-transition:enter-start="opacity-0 transform translate-x-4"
                      x-transition:enter-end="opacity-100 transform translate-x-0"
                      class="space-y-6">
                     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-3 sm:space-y-0">
                         <h3 class="text-2xl font-bold text-gray-800 flex items-center">
-                            <i class="fas fa-rocket mr-3 text-red-600"></i>Production Deployment Setup
+                            <span class="inline-flex items-center justify-center w-10 h-10 bg-gradient-to-br from-red-500 to-orange-500 rounded-xl mr-3 shadow-lg">
+                                <i class="fas fa-rocket text-white"></i>
+                            </span>
+                            <span class="gradient-text">Production Deployment Setup</span>
                         </h3>
-                        <button @click="copyToClipboard('deploy-setup-code')" 
-                                class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center">
+                        <button @click="copyToClipboard('deploy-setup-code')"
+                                class="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-6 py-3 rounded-xl font-medium transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-blue-500/30 transform hover:-translate-y-0.5 flex items-center">
                             <i class="fas fa-copy mr-2"></i>Copy Code
                         </button>
                     </div>
-                    <div class="code-block rounded-xl overflow-hidden shadow-lg">
-                        <div class="bg-gray-800 px-6 py-3 text-gray-300 font-medium flex items-center">
+                    <div class="code-block rounded-xl overflow-hidden shadow-2xl border border-gray-700/50">
+                        <div class="bg-gradient-to-r from-gray-800 to-gray-900 px-6 py-3 text-gray-300 font-medium flex items-center border-b border-gray-700/50">
                             <i class="fas fa-rocket mr-3 text-red-400"></i>Production Deployment Commands
                         </div>
-                        <pre id="deploy-setup-code" class="text-green-400 p-6 overflow-x-auto text-sm leading-relaxed"><code># Production Deployment Setup
+                        <pre id="deploy-setup-code" class="text-green-400 p-6 overflow-x-auto text-sm leading-relaxed font-mono"><code># Production Deployment Setup
 
 📂 1. Setting up uWSGI configuration
 mkdir -p uwsgi
@@ -385,25 +453,28 @@ sudo systemctl restart {{ project.project_name }}.service
                 </div>
 
                 <!-- uWSGI Server Tab -->
-                <div x-show="activeTab === 'uwsgi-server'" 
+                <div x-show="activeTab === 'uwsgi-server'"
                      x-transition:enter="transition ease-out duration-300"
                      x-transition:enter-start="opacity-0 transform translate-x-4"
                      x-transition:enter-end="opacity-100 transform translate-x-0"
                      class="space-y-6">
                     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-3 sm:space-y-0">
                         <h3 class="text-2xl font-bold text-gray-800 flex items-center">
-                            <i class="fas fa-server mr-3 text-indigo-600"></i>uWSGI Configuration
+                            <span class="inline-flex items-center justify-center w-10 h-10 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-xl mr-3 shadow-lg">
+                                <i class="fas fa-server text-white"></i>
+                            </span>
+                            <span class="gradient-text">uWSGI Configuration</span>
                         </h3>
-                        <button @click="copyToClipboard('uwsgi-server-code')" 
-                                class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center">
+                        <button @click="copyToClipboard('uwsgi-server-code')"
+                                class="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-6 py-3 rounded-xl font-medium transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-blue-500/30 transform hover:-translate-y-0.5 flex items-center">
                             <i class="fas fa-copy mr-2"></i>Copy Code
                         </button>
                     </div>
-                    <div class="code-block rounded-xl overflow-hidden shadow-lg">
-                        <div class="bg-gray-800 px-6 py-3 text-gray-300 font-medium flex items-center">
+                    <div class="code-block rounded-xl overflow-hidden shadow-2xl border border-gray-700/50">
+                        <div class="bg-gradient-to-r from-gray-800 to-gray-900 px-6 py-3 text-gray-300 font-medium flex items-center border-b border-gray-700/50">
                             <i class="fas fa-server mr-3 text-indigo-400"></i>uWSGI Configuration File
                         </div>
-                        <pre id="uwsgi-server-code" class="text-green-400 p-6 overflow-x-auto text-sm leading-relaxed"><code>[uwsgi]
+                        <pre id="uwsgi-server-code" class="text-green-400 p-6 overflow-x-auto text-sm leading-relaxed font-mono"><code>[uwsgi]
 # Django-related settings
 chdir           = /opt/{{ project.project_name }}
 # Django's wsgi file
@@ -432,25 +503,28 @@ listen          = 4096
                 </div>
 
                 <!-- Service Config Tab -->
-                <div x-show="activeTab === 'service-config'" 
+                <div x-show="activeTab === 'service-config'"
                      x-transition:enter="transition ease-out duration-300"
                      x-transition:enter-start="opacity-0 transform translate-x-4"
                      x-transition:enter-end="opacity-100 transform translate-x-0"
                      class="space-y-6">
                     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-3 sm:space-y-0">
                         <h3 class="text-2xl font-bold text-gray-800 flex items-center">
-                            <i class="fas fa-cogs mr-3 text-orange-600"></i>Systemd Service Configuration
+                            <span class="inline-flex items-center justify-center w-10 h-10 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl mr-3 shadow-lg">
+                                <i class="fas fa-cogs text-white"></i>
+                            </span>
+                            <span class="gradient-text">Systemd Service Configuration</span>
                         </h3>
-                        <button @click="copyToClipboard('service-config-code')" 
-                                class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center">
+                        <button @click="copyToClipboard('service-config-code')"
+                                class="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-6 py-3 rounded-xl font-medium transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-blue-500/30 transform hover:-translate-y-0.5 flex items-center">
                             <i class="fas fa-copy mr-2"></i>Copy Code
                         </button>
                     </div>
-                    <div class="code-block rounded-xl overflow-hidden shadow-lg">
-                        <div class="bg-gray-800 px-6 py-3 text-gray-300 font-medium flex items-center">
+                    <div class="code-block rounded-xl overflow-hidden shadow-2xl border border-gray-700/50">
+                        <div class="bg-gradient-to-r from-gray-800 to-gray-900 px-6 py-3 text-gray-300 font-medium flex items-center border-b border-gray-700/50">
                             <i class="fas fa-cogs mr-3 text-orange-400"></i>Systemd Service File
                         </div>
-                        <pre id="service-config-code" class="text-green-400 p-6 overflow-x-auto text-sm leading-relaxed"><code>[Unit]
+                        <pre id="service-config-code" class="text-green-400 p-6 overflow-x-auto text-sm leading-relaxed font-mono"><code>[Unit]
 Description=uWSGI instance to serve {{ project.project_name }}
 After=network.target postgresql-14.service
 
@@ -471,25 +545,28 @@ WantedBy=multi-user.target</code></pre>
                 </div>
 
                 <!-- Nginx Config Tab -->
-                <div x-show="activeTab === 'nginx-config'" 
+                <div x-show="activeTab === 'nginx-config'"
                      x-transition:enter="transition ease-out duration-300"
                      x-transition:enter-start="opacity-0 transform translate-x-4"
                      x-transition:enter-end="opacity-100 transform translate-x-0"
                      class="space-y-6">
                     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-3 sm:space-y-0">
                         <h3 class="text-2xl font-bold text-gray-800 flex items-center">
-                            <i class="fas fa-globe mr-3 text-blue-600"></i>Nginx Configuration
+                            <span class="inline-flex items-center justify-center w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl mr-3 shadow-lg">
+                                <i class="fas fa-globe text-white"></i>
+                            </span>
+                            <span class="gradient-text">Nginx Configuration</span>
                         </h3>
-                        <button @click="copyToClipboard('nginx-config-code')" 
-                                class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center">
+                        <button @click="copyToClipboard('nginx-config-code')"
+                                class="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-6 py-3 rounded-xl font-medium transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-blue-500/30 transform hover:-translate-y-0.5 flex items-center">
                             <i class="fas fa-copy mr-2"></i>Copy Code
                         </button>
                     </div>
-                    <div class="code-block rounded-xl overflow-hidden shadow-lg">
-                        <div class="bg-gray-800 px-6 py-3 text-gray-300 font-medium flex items-center">
+                    <div class="code-block rounded-xl overflow-hidden shadow-2xl border border-gray-700/50">
+                        <div class="bg-gradient-to-r from-gray-800 to-gray-900 px-6 py-3 text-gray-300 font-medium flex items-center border-b border-gray-700/50">
                             <i class="fas fa-globe mr-3 text-blue-400"></i>Nginx Server Block
                         </div>
-                        <pre id="nginx-config-code" class="text-green-400 p-6 overflow-x-auto text-sm leading-relaxed"><code>upstream uwsgi_{{ project.project_name }} {
+                        <pre id="nginx-config-code" class="text-green-400 p-6 overflow-x-auto text-sm leading-relaxed font-mono"><code>upstream uwsgi_{{ project.project_name }} {
         server unix:/opt/{{ project.project_name }}/uwsgi/uwsgi.sock;
 }
 server {
@@ -521,25 +598,28 @@ server {
                     </div>
                 </div>
 <!-- Restart Server Tab -->
-<div x-show="activeTab === 'Restart Server'" 
+<div x-show="activeTab === 'Restart Server'"
      x-transition:enter="transition ease-out duration-300"
      x-transition:enter-start="opacity-0 transform translate-x-4"
      x-transition:enter-end="opacity-100 transform translate-x-0"
      class="space-y-6">
     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-3 sm:space-y-0">
         <h3 class="text-2xl font-bold text-gray-800 flex items-center">
-            <i class="fas fa-sync-alt mr-3 text-blue-600"></i>Restart Server Commands
+            <span class="inline-flex items-center justify-center w-10 h-10 bg-gradient-to-br from-teal-500 to-green-500 rounded-xl mr-3 shadow-lg">
+                <i class="fas fa-sync-alt text-white"></i>
+            </span>
+            <span class="gradient-text">Restart Server Commands</span>
         </h3>
-        <button @click="copyToClipboard('restart-server-code')" 
-                class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center">
+        <button @click="copyToClipboard('restart-server-code')"
+                class="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-6 py-3 rounded-xl font-medium transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-blue-500/30 transform hover:-translate-y-0.5 flex items-center">
             <i class="fas fa-copy mr-2"></i>Copy Code
         </button>
     </div>
-    <div class="code-block rounded-xl overflow-hidden shadow-lg ">
-        <div class="bg-gray-800 px-6 py-3 text-gray-300 font-medium flex items-center">
+    <div class="code-block rounded-xl overflow-hidden shadow-2xl border border-gray-700/50">
+        <div class="bg-gradient-to-r from-gray-800 to-gray-900 px-6 py-3 text-gray-300 font-medium flex items-center border-b border-gray-700/50">
             <i class="fas fa-terminal mr-3 text-blue-400"></i>Server Restart Commands
         </div>
-        <pre id="restart-server-code" class="text-green-400 p-6 overflow-x-auto text-sm leading-relaxed"><code># Server Restart Commands for {{ project.project_name }}
+        <pre id="restart-server-code" class="text-green-400 p-6 overflow-x-auto text-sm leading-relaxed font-mono"><code># Server Restart Commands for {{ project.project_name }}
 
 📂 1. Navigate to Project Directory
 cd /opt/{{ project.project_name }}/
@@ -562,26 +642,29 @@ sudo systemctl restart {{ project.project_name }}.service
                 
             </div>
 
-            <!-- Requerment Tab -->
-<div x-show="activeTab === 'Requerment'" 
+            <!-- Requirements Tab -->
+<div x-show="activeTab === 'Requerment'"
      x-transition:enter="transition ease-out duration-300"
      x-transition:enter-start="opacity-0 transform translate-x-4"
      x-transition:enter-end="opacity-100 transform translate-x-0"
      class="space-y-6">
     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-3 sm:space-y-0">
         <h3 class="text-2xl font-bold text-gray-800 flex items-center">
-            <i class="fas fa-list mr-3 text-blue-600"></i>Project Requirements
+            <span class="inline-flex items-center justify-center w-10 h-10 bg-gradient-to-br from-pink-500 to-rose-500 rounded-xl mr-3 shadow-lg">
+                <i class="fas fa-list text-white"></i>
+            </span>
+            <span class="gradient-text">Project Requirements</span>
         </h3>
-        <button @click="copyToClipboard('requerment-code')" 
-                class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center">
+        <button @click="copyToClipboard('requerment-code')"
+                class="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-6 py-3 rounded-xl font-medium transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-blue-500/30 transform hover:-translate-y-0.5 flex items-center">
             <i class="fas fa-copy mr-2"></i>Copy Code
         </button>
     </div>
-    <div class="code-block rounded-xl overflow-hidden shadow-lg">
-        <div class="bg-gray-800 px-6 py-3 text-gray-300 font-medium flex items-center">
-            <i class="fas fa-list mr-3 text-blue-400"></i>Project Requirements List
+    <div class="code-block rounded-xl overflow-hidden shadow-2xl border border-gray-700/50">
+        <div class="bg-gradient-to-r from-gray-800 to-gray-900 px-6 py-3 text-gray-300 font-medium flex items-center border-b border-gray-700/50">
+            <i class="fas fa-list mr-3 text-pink-400"></i>Project Requirements List
         </div>
-        <pre id="requerment-code" class="text-green-400 p-6 overflow-x-auto text-sm leading-relaxed"><code># Project Requirements for {{ project.project_name }}
+        <pre id="requerment-code" class="text-green-400 p-6 overflow-x-auto text-sm leading-relaxed font-mono"><code># Project Requirements for {{ project.project_name }}
 
 📦 Django Dependencies
 Django==4.2.7
@@ -608,9 +691,9 @@ pip install psycopg2-binary==2.9.10
          x-transition:leave="transition ease-in duration-200"
          x-transition:leave-start="opacity-100 transform translate-y-0"
          x-transition:leave-end="opacity-0 transform translate-y-2"
-         class="fixed bottom-4 right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg flex items-center z-50"
+         class="fixed bottom-4 right-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-3 rounded-xl shadow-2xl flex items-center z-50 backdrop-blur-sm border border-white/20"
          x-cloak>
-        <i class="fas fa-check-circle mr-2"></i>
+        <i class="fas fa-check-circle mr-2 animate-bounce"></i>
         <span>Code copied to clipboard!</span>
     </div>
 
@@ -623,24 +706,23 @@ pip install psycopg2-binary==2.9.10
                 mobileMenuOpen: false,
                 showToast: false,
                 tabs: [
-                    { id: 'ssh-key', fullName: 'SSH Key Management', shortName: 'SSH', icon: 'fas fa-key' },
-                    { id: 'dev-setup', fullName: 'Dev Setup', shortName: 'Dev', icon: 'fas fa-code' },
-                    { id: 'db-setup', fullName: 'DB Setup', shortName: 'DB', icon: 'fas fa-database' },
-                    { id: 'deploy-setup', fullName: 'Deploy Setup', shortName: 'Deploy', icon: 'fas fa-rocket' },
-                    { id: 'uwsgi-server', fullName: 'uWSGI Config', shortName: 'uWSGI', icon: 'fas fa-server' },
-                    { id: 'service-config', fullName: 'Service Config', shortName: 'Service', icon: 'fas fa-cogs' },
-                    { id: 'nginx-config', fullName: 'Nginx Config', shortName: 'Nginx', icon: 'fas fa-globe' },
-                    { id: 'Restart Server', fullName: 'Restart Server', shortName: 'Restart', icon: 'fas fa-server' },
-                    { id: 'Requerment', fullName: 'Requerment', shortName: 'Requerment', icon: 'fas fa-list' },
-
+                    { id: 'ssh-key', fullName: 'SSH Key Management', shortName: 'SSH', icon: 'fas fa-key', color: 'from-yellow-400 to-orange-500' },
+                    { id: 'dev-setup', fullName: 'Dev Setup', shortName: 'Dev', icon: 'fas fa-code', color: 'from-purple-500 to-pink-500' },
+                    { id: 'db-setup', fullName: 'DB Setup', shortName: 'DB', icon: 'fas fa-database', color: 'from-green-500 to-emerald-600' },
+                    { id: 'deploy-setup', fullName: 'Deploy Setup', shortName: 'Deploy', icon: 'fas fa-rocket', color: 'from-red-500 to-orange-500' },
+                    { id: 'uwsgi-server', fullName: 'uWSGI Config', shortName: 'uWSGI', icon: 'fas fa-server', color: 'from-indigo-500 to-blue-600' },
+                    { id: 'service-config', fullName: 'Service Config', shortName: 'Service', icon: 'fas fa-cogs', color: 'from-orange-500 to-red-500' },
+                    { id: 'nginx-config', fullName: 'Nginx Config', shortName: 'Nginx', icon: 'fas fa-globe', color: 'from-blue-500 to-cyan-500' },
+                    { id: 'Restart Server', fullName: 'Restart Server', shortName: 'Restart', icon: 'fas fa-server', color: 'from-teal-500 to-green-500' },
+                    { id: 'Requerment', fullName: 'Requirements', shortName: 'Req', icon: 'fas fa-list', color: 'from-pink-500 to-rose-500' },
                 ],
-                
+
                 copyToClipboard(elementId) {
                     const element = document.getElementById(elementId);
                     if (!element) return;
-                    
+
                     const text = element.textContent;
-                    
+
                     if (navigator.clipboard && window.isSecureContext) {
                         navigator.clipboard.writeText(text).then(() => {
                             this.showSuccessToast();
@@ -651,7 +733,7 @@ pip install psycopg2-binary==2.9.10
                         this.fallbackCopy(text);
                     }
                 },
-                
+
                 fallbackCopy(text) {
                     const textArea = document.createElement('textarea');
                     textArea.value = text;
@@ -661,25 +743,112 @@ pip install psycopg2-binary==2.9.10
                     document.body.appendChild(textArea);
                     textArea.focus();
                     textArea.select();
-                    
+
                     try {
                         document.execCommand('copy');
                         this.showSuccessToast();
                     } catch (err) {
                         console.error('Failed to copy: ', err);
                     }
-                    
+
                     document.body.removeChild(textArea);
                 },
-                
+
                 showSuccessToast() {
                     this.showToast = true;
                     setTimeout(() => {
                         this.showToast = false;
                     }, 3000);
+                },
+
+                getTabColor(tabId) {
+                    const tab = this.tabs.find(t => t.id === tabId);
+                    return tab ? tab.color : 'from-gray-500 to-gray-600';
                 }
             }
         }
+
+        // Add smooth scroll behavior
+        document.documentElement.style.scrollBehavior = 'smooth';
+
+        // Add ripple effect to buttons
+        document.querySelectorAll('button, a').forEach(button => {
+            button.addEventListener('click', function(e) {
+                const ripple = document.createElement('span');
+                const rect = this.getBoundingClientRect();
+                const size = Math.max(rect.width, rect.height);
+                const x = e.clientX - rect.left - size / 2;
+                const y = e.clientY - rect.top - size / 2;
+
+                ripple.style.cssText = `
+                    position: absolute;
+                    width: ${size}px;
+                    height: ${size}px;
+                    left: ${x}px;
+                    top: ${y}px;
+                    background: rgba(255, 255, 255, 0.4);
+                    border-radius: 50%;
+                    transform: scale(0);
+                    animation: ripple 0.6s ease-out;
+                    pointer-events: none;
+                `;
+
+                this.style.position = 'relative';
+                this.style.overflow = 'hidden';
+                this.appendChild(ripple);
+
+                setTimeout(() => ripple.remove(), 600);
+            });
+        });
+
+        // Add ripple animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes ripple {
+                to {
+                    transform: scale(4);
+                    opacity: 0;
+                }
+            }
+            .keyboard-focus {
+                outline: 2px solid #3b82f6;
+                outline-offset: 2px;
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Add stagger animation to cards on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.code-block');
+            cards.forEach((card, index) => {
+                card.style.animation = `slideInUp 0.5s ease-out ${index * 0.05}s backwards`;
+            });
+        });
+
+        // Add keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Tab' || e.key === 'Enter' || e.key === ' ') {
+                const focusedElement = document.activeElement;
+                if (focusedElement) {
+                    focusedElement.classList.add('keyboard-focus');
+                }
+            }
+        });
+
+        document.addEventListener('keyup', function(e) {
+            document.querySelectorAll('.keyboard-focus').forEach(el => {
+                el.classList.remove('keyboard-focus');
+            });
+        });
+
+        // Handle orientation change
+        window.addEventListener('orientationchange', function() {
+            setTimeout(() => {
+                document.body.style.display = 'none';
+                document.body.offsetHeight;
+                document.body.style.display = '';
+            }, 100);
+        });
     </script>
 
     <style>
