@@ -3,10 +3,39 @@
 
 {% block title %}DevOps Dashboard{% endblock %}
 {% block content %}
-<body class="bg-gradient-to-br from-gray-50 to-blue-50 min-h-screen">
+<body class="bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 min-h-screen">
     
+    <!-- Animated Background Elements -->
+    <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
+        <div class="absolute top-20 left-10 w-96 h-96 bg-blue-200/40 rounded-full blur-3xl animate-pulse"></div>
+        <div class="absolute bottom-20 right-10 w-96 h-96 bg-purple-200/40 rounded-full blur-3xl animate-pulse" style="animation-delay: 2s;"></div>
+        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-cyan-200/30 rounded-full blur-3xl" style="animation: float 6s ease-in-out infinite;"></div>
+    </div>
+
+    <style>
+        @keyframes float {
+            0%, 100% { transform: translate(-50%, -50%) translateY(0px); }
+            50% { transform: translate(-50%, -50%) translateY(-20px); }
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 0.6; }
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #2563eb 0%, #9333ea 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+    </style>
+
     <!-- Main Content -->
-    <div class="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 lg:py-10">
+    <div class="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 lg:py-10 relative z-10">
         
         <!-- Header Section -->
         <div class="mb-6 sm:mb-8 lg:mb-12">
