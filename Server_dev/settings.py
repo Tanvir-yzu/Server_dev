@@ -46,7 +46,6 @@ SOCIALACCOUNT_LOGIN_ON_GET = True  # Redirect to the login page after successful
 INSTALLED_APPS = [
     'jazzmin',  # Admin theme (install via pip)
     'django.contrib.admin',
-    'hijack.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
