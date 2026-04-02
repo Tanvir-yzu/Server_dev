@@ -67,7 +67,7 @@ INSTALLED_APPS = [
     'collaboration',
     'System',
     'servercontrol',
-    'hijack',
+   
 ]
 
 MIDDLEWARE = [
@@ -79,9 +79,8 @@ MIDDLEWARE = [
     'allauth.account.middleware.AccountMiddleware',  # Required by allauth
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'hijack.middleware.HijackUserMiddleware',
 ]
-HIJACK_PERMISSION_CHECK = "hijack.permissions.superusers_and_staff"
+
 ROOT_URLCONF = 'Server_dev.urls'
 
 # ======================
