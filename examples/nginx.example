@@ -3,7 +3,7 @@ upstream uwsgi_Server_dev {
 }
 server {
     listen 80;
-    server_name server.en2bn.com www.server.en2bn.com;
+    server_name server.bongoitsolutions.com www.server.bongoitsolutions.com;
     
     access_log /opt/Server_dev/logs/access.log;
     error_log /opt/Server_dev/logs/error.log;
