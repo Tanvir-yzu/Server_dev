@@ -75,6 +75,10 @@
             to { transform: translateY(0); opacity: 1; }
         }
         
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-in-out forwards;
+        }
+        
         @keyframes loadingPulse {
             0%, 100% { transform: scale(1); opacity: 1; }
             50% { transform: scale(1.1); opacity: 0.8; }
@@ -320,38 +324,197 @@
             {% block content %}{% endblock %}
         </main>
 
-        <!-- Footer -->
-        <footer class="bg-gray-800 text-white mt-16">
-            <div class="container mx-auto px-4 py-8">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <div>
-                        <h3 class="text-lg font-semibold mb-4 flex items-center">
-                            <i class="fas fa-rocket mr-2 text-blue-400"></i>
-                            DevOps Dashboard
-                        </h3>
-                        <p class="text-gray-400">Streamline your deployment process with our comprehensive DevOps management platform.</p>
+        <!-- Modern Footer -->
+        <footer class="relative bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white overflow-hidden">
+            <!-- Background Pattern -->
+            <div class="absolute inset-0 opacity-10">
+                <div class="absolute inset-0" style="background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.15) 1px, transparent 0); background-size: 20px 20px;"></div>
+            </div>
+
+            <!-- Main Footer Content -->
+            <div class="relative container mx-auto px-4 py-16">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
+                    <!-- Brand Section -->
+                    <div class="lg:col-span-1">
+                        <div class="flex items-center mb-6">
+                            <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center mr-3 shadow-lg">
+                                <i class="fas fa-rocket text-white text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                                    DevOps Dashboard
+                                </h3>
+                                <p class="text-xs text-gray-400 uppercase tracking-wider">Professional Edition</p>
+                            </div>
+                        </div>
+                        <p class="text-gray-300 mb-6 leading-relaxed">
+                            Streamline your deployment process with our comprehensive DevOps management platform.
+                            Built for modern development teams.
+                        </p>
+                        <div class="flex space-x-4">
+                            <a href="#" class="w-10 h-10 bg-gray-800 hover:bg-blue-600 rounded-lg flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-lg">
+                                <i class="fab fa-twitter text-gray-400 hover:text-white"></i>
+                            </a>
+                            <a href="#" class="w-10 h-10 bg-gray-800 hover:bg-blue-600 rounded-lg flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-lg">
+                                <i class="fab fa-github text-gray-400 hover:text-white"></i>
+                            </a>
+                            <a href="#" class="w-10 h-10 bg-gray-800 hover:bg-blue-600 rounded-lg flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-lg">
+                                <i class="fab fa-linkedin text-gray-400 hover:text-white"></i>
+                            </a>
+                            <a href="#" class="w-10 h-10 bg-gray-800 hover:bg-blue-600 rounded-lg flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-lg">
+                                <i class="fab fa-discord text-gray-400 hover:text-white"></i>
+                            </a>
+                        </div>
                     </div>
+
+                    <!-- Quick Links -->
                     <div>
-                        <h3 class="text-lg font-semibold mb-4">Quick Links</h3>
-                        <ul class="space-y-2 text-gray-400">
-                            <li><a href="{% url 'devops:dashboard' %}" class="hover:text-white transition-colors duration-200">Dashboard</a></li>
-                            <li><a href="{% url 'devops:project_list' %}" class="hover:text-white transition-colors duration-200">Projects</a></li>
-                            <li><a href="{% url 'devops:project_create' %}" class="hover:text-white transition-colors duration-200">New Project</a></li>
+                        <h4 class="text-lg font-semibold mb-6 flex items-center">
+                            <i class="fas fa-link mr-2 text-blue-400"></i>
+                            Quick Links
+                        </h4>
+                        <ul class="space-y-3">
+                            <li>
+                                <a href="{% url 'devops:dashboard' %}" class="text-gray-300 hover:text-blue-400 transition-colors duration-200 flex items-center group">
+                                    <i class="fas fa-chevron-right mr-2 text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200"></i>
+                                    Dashboard
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{% url 'devops:project_list' %}" class="text-gray-300 hover:text-blue-400 transition-colors duration-200 flex items-center group">
+                                    <i class="fas fa-chevron-right mr-2 text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200"></i>
+                                    Projects
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{% url 'devops:project_create' %}" class="text-gray-300 hover:text-blue-400 transition-colors duration-200 flex items-center group">
+                                    <i class="fas fa-chevron-right mr-2 text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200"></i>
+                                    New Project
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="text-gray-300 hover:text-blue-400 transition-colors duration-200 flex items-center group">
+                                    <i class="fas fa-chevron-right mr-2 text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200"></i>
+                                    API Docs
+                                </a>
+                            </li>
                         </ul>
                     </div>
+
+                    <!-- Resources -->
                     <div>
-                        <h3 class="text-lg font-semibold mb-4">Support</h3>
-                        <ul class="space-y-2 text-gray-400">
-                            <li><a href="#" class="hover:text-white transition-colors duration-200">Documentation</a></li>
-                            <li><a href="#" class="hover:text-white transition-colors duration-200">Help Center</a></li>
-                            <li><a href="#" class="hover:text-white transition-colors duration-200">Contact Us</a></li>
+                        <h4 class="text-lg font-semibold mb-6 flex items-center">
+                            <i class="fas fa-book mr-2 text-purple-400"></i>
+                            Resources
+                        </h4>
+                        <ul class="space-y-3">
+                            <li>
+                                <a href="#" class="text-gray-300 hover:text-purple-400 transition-colors duration-200 flex items-center group">
+                                    <i class="fas fa-chevron-right mr-2 text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200"></i>
+                                    Documentation
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="text-gray-300 hover:text-purple-400 transition-colors duration-200 flex items-center group">
+                                    <i class="fas fa-chevron-right mr-2 text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200"></i>
+                                    Help Center
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="text-gray-300 hover:text-purple-400 transition-colors duration-200 flex items-center group">
+                                    <i class="fas fa-chevron-right mr-2 text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200"></i>
+                                    Tutorials
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="text-gray-300 hover:text-purple-400 transition-colors duration-200 flex items-center group">
+                                    <i class="fas fa-chevron-right mr-2 text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200"></i>
+                                    Community
+                                </a>
+                            </li>
                         </ul>
                     </div>
-                </div>
-                <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
-                    <p>&copy; {% now "Y" %} DevOps Dashboard. All rights reserved.</p>
+
+                    <!-- Contact & Newsletter -->
+                    <div>
+                        <h4 class="text-lg font-semibold mb-6 flex items-center">
+                            <i class="fas fa-envelope mr-2 text-green-400"></i>
+                            Stay Updated
+                        </h4>
+                        <p class="text-gray-300 mb-4 text-sm">
+                            Get the latest updates on new features and improvements.
+                        </p>
+
+                        <!-- Newsletter Signup -->
+                        <div class="mb-6">
+                            <div class="flex">
+                                <input type="email"
+                                       placeholder="Enter your email"
+                                       class="flex-1 px-4 py-2 bg-gray-800 border border-gray-700 rounded-l-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors duration-200">
+                                <button class="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 rounded-r-lg transition-all duration-200 hover:shadow-lg transform hover:scale-105">
+                                    <i class="fas fa-paper-plane text-white"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Contact Info -->
+                        <div class="space-y-2 text-sm text-gray-400">
+                            <div class="flex items-center">
+                                <i class="fas fa-envelope mr-2 text-green-400"></i>
+                                <a href="mailto:support@devopsdashboard.com" class="hover:text-green-400 transition-colors duration-200">
+                                    support@devopsdashboard.com
+                                </a>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-phone mr-2 text-green-400"></i>
+                                <span>+1 (555) 123-4567</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
+
+            <!-- Bottom Bar -->
+            <div class="relative border-t border-gray-800">
+                <div class="container mx-auto px-4 py-6">
+                    <div class="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+                        <div class="flex items-center space-x-6 text-sm text-gray-400">
+                            <p>&copy; {% now "Y" %} DevOps Dashboard. All rights reserved.</p>
+                            <div class="hidden md:flex space-x-6">
+                                <a href="#" class="hover:text-blue-400 transition-colors duration-200">Privacy Policy</a>
+                                <a href="#" class="hover:text-blue-400 transition-colors duration-200">Terms of Service</a>
+                                <a href="#" class="hover:text-blue-400 transition-colors duration-200">Cookie Policy</a>
+                            </div>
+                        </div>
+
+                        <!-- Version & Status -->
+                        <div class="flex items-center space-x-4 text-xs text-gray-500">
+                            <span class="flex items-center">
+                                <i class="fas fa-code-branch mr-1"></i>
+                                v2.1.0
+                            </span>
+                            <span class="flex items-center">
+                                <div class="w-2 h-2 bg-green-500 rounded-full mr-1 animate-pulse"></div>
+                                All Systems Operational
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Mobile Links -->
+                    <div class="md:hidden flex justify-center space-x-6 mt-4 text-sm text-gray-400">
+                        <a href="#" class="hover:text-blue-400 transition-colors duration-200">Privacy</a>
+                        <a href="#" class="hover:text-blue-400 transition-colors duration-200">Terms</a>
+                        <a href="#" class="hover:text-blue-400 transition-colors duration-200">Cookies</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Floating Action Button (Back to Top) -->
+            <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})"
+                    class="fixed bottom-6 right-6 w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110 z-40 opacity-0 animate-fade-in"
+                    style="animation-delay: 2s;">
+                <i class="fas fa-arrow-up text-white"></i>
+            </button>
         </footer>
 
     </div>
