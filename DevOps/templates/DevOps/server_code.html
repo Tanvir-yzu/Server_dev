@@ -430,6 +430,7 @@ pg_dump {{ project.database_name }} > {{ project.database_name }}_backup.sql
 mkdir -p uwsgi
 cp examples/uwsgi.example uwsgi/uwsgi.ini
 cat uwsgi/uwsgi.ini
+uwsgi --ini uwsgi/uwsgi.ini
 
 🛠️ 2. Setting up systemd service
 sudo cp /opt/{{ project.project_name }}/examples/service.example /etc/systemd/system/{{ project.project_name }}.service
