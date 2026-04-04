@@ -173,6 +173,7 @@
          class="min-h-screen w-full bg-white relative" 
          x-cloak>
 
+        {% block navbar %}
         <!-- Navigation -->
         <nav class="bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-xl">
             <div class="container mx-auto px-4">
@@ -270,6 +271,7 @@
                 </div>
             </div>
         </nav>
+        {% endblock navbar %}
 
         <!-- Breadcrumbs -->
         {% if breadcrumbs %}
@@ -324,6 +326,7 @@
             {% block content %}{% endblock %}
         </main>
 
+        {% block footer %}
         <!-- Modern Footer -->
         <footer class="relative bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white overflow-hidden">
             <!-- Background Pattern -->
@@ -516,6 +519,7 @@
                 <i class="fas fa-arrow-up text-white"></i>
             </button>
         </footer>
+        {% endblock footer %}
 
     </div>
 
