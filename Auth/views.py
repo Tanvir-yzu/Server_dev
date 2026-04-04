@@ -82,7 +82,7 @@ class RegisterView(CreateView):
             logger.debug(f"Profile created for user {user.email} (Profile ID: {profile.id})")
 
             # Auto-login the user
-            login(self.request, user)
+            login(self.request, user, backend='django.contrib.auth.backends.ModelBackend')
             logger.info(f"User {user.email} automatically logged in after registration")
             
             return response
@@ -122,7 +122,7 @@ class LoginView(FormView):
         user = authenticate(email=email, password=password)
 
         if user is not None:
-            login(self.request, user)
+            login(self.request, user, backend='django.contrib.auth.backends.ModelBackend')
             logger.info(f"Successful login for user: {user.email} (ID: {user.id})")
             
             # Log additional user info
