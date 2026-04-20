@@ -2,508 +2,1463 @@
 {% load static %}
 
 {% block title %}DevOps Dashboard{% endblock %}
+{% block extra_css %}
+:root {
+    --dd-bg: radial-gradient(1200px 700px at 15% 0%, rgba(37, 99, 235, 0.10), transparent 60%),
+        radial-gradient(900px 600px at 85% 10%, rgba(147, 51, 234, 0.10), transparent 55%),
+        radial-gradient(900px 600px at 45% 85%, rgba(14, 165, 233, 0.10), transparent 55%),
+        linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    --dd-surface: rgba(255, 255, 255, 0.86);
+    --dd-surface-strong: rgba(255, 255, 255, 0.96);
+    --dd-border: rgba(148, 163, 184, 0.35);
+    --dd-border-strong: rgba(148, 163, 184, 0.55);
+    --dd-text: #0f172a;
+    --dd-muted: #475569;
+    --dd-muted-2: #64748b;
+    --dd-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
+    --dd-shadow-hover: 0 18px 45px rgba(15, 23, 42, 0.18);
+    --dd-focus: 0 0 0 4px rgba(37, 99, 235, 0.25);
+    --dd-primary: #2563eb;
+    --dd-primary-2: #1d4ed8;
+    --dd-success: #16a34a;
+    --dd-warning: #d97706;
+    --dd-danger: #dc2626;
+    --dd-radius: 18px;
+    --dd-radius-sm: 12px;
+    --dd-gap: 16px;
+    --dd-gap-lg: 20px;
+    --dd-anim: 180ms;
+}
+
+html[data-theme="dark"] {
+    --dd-bg: radial-gradient(1200px 700px at 15% 0%, rgba(37, 99, 235, 0.20), transparent 60%),
+        radial-gradient(900px 600px at 85% 10%, rgba(147, 51, 234, 0.18), transparent 55%),
+        radial-gradient(900px 600px at 45% 85%, rgba(14, 165, 233, 0.12), transparent 55%),
+        linear-gradient(180deg, #0b1220 0%, #0a0f1a 100%);
+    --dd-surface: rgba(2, 6, 23, 0.58);
+    --dd-surface-strong: rgba(2, 6, 23, 0.72);
+    --dd-border: rgba(148, 163, 184, 0.20);
+    --dd-border-strong: rgba(148, 163, 184, 0.28);
+    --dd-text: #e5e7eb;
+    --dd-muted: rgba(226, 232, 240, 0.80);
+    --dd-muted-2: rgba(226, 232, 240, 0.66);
+    --dd-shadow: 0 16px 40px rgba(0, 0, 0, 0.42);
+    --dd-shadow-hover: 0 22px 55px rgba(0, 0, 0, 0.55);
+    --dd-focus: 0 0 0 4px rgba(59, 130, 246, 0.30);
+    --dd-primary: #60a5fa;
+    --dd-primary-2: #3b82f6;
+    --dd-success: #22c55e;
+    --dd-warning: #f59e0b;
+    --dd-danger: #f87171;
+}
+
+#devops-dashboard {
+    color: var(--dd-text);
+    background: var(--dd-bg);
+    border: 1px solid var(--dd-border);
+    border-radius: 24px;
+    box-shadow: var(--dd-shadow);
+    overflow: hidden;
+}
+
+#devops-dashboard .dd-inner {
+    padding: 18px;
+}
+
+@media (min-width: 640px) {
+    #devops-dashboard .dd-inner {
+        padding: 24px;
+    }
+}
+
+@media (min-width: 1024px) {
+    #devops-dashboard .dd-inner {
+        padding: 28px;
+    }
+}
+
+#devops-dashboard .dd-skip-link {
+    position: absolute;
+    left: -999px;
+    top: 12px;
+    z-index: 50;
+    background: var(--dd-surface-strong);
+    color: var(--dd-text);
+    border: 1px solid var(--dd-border-strong);
+    border-radius: 999px;
+    padding: 10px 14px;
+    box-shadow: var(--dd-shadow);
+}
+
+#devops-dashboard .dd-skip-link:focus {
+    left: 12px;
+    outline: none;
+    box-shadow: var(--dd-shadow), var(--dd-focus);
+}
+
+#devops-dashboard .dd-top {
+    display: grid;
+    gap: var(--dd-gap-lg);
+    align-items: start;
+}
+
+@media (min-width: 1024px) {
+    #devops-dashboard .dd-top {
+        grid-template-columns: 1.3fr 0.7fr;
+        align-items: center;
+    }
+}
+
+#devops-dashboard .dd-hero {
+    background: var(--dd-surface);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--dd-border);
+    border-radius: 22px;
+    padding: 18px;
+}
+
+@media (min-width: 640px) {
+    #devops-dashboard .dd-hero {
+        padding: 22px;
+    }
+}
+
+#devops-dashboard .dd-hero h1 {
+    font-size: 1.45rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+}
+
+@media (min-width: 640px) {
+    #devops-dashboard .dd-hero h1 {
+        font-size: 1.85rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    #devops-dashboard .dd-hero h1 {
+        font-size: 2.1rem;
+    }
+}
+
+#devops-dashboard .dd-hero .dd-subtitle {
+    color: var(--dd-muted);
+    margin-top: 8px;
+    line-height: 1.55;
+}
+
+#devops-dashboard .dd-hero .dd-identity {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+#devops-dashboard .dd-mark {
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.92) 0%, rgba(147, 51, 234, 0.92) 100%);
+    color: white;
+    box-shadow: 0 12px 28px rgba(37, 99, 235, 0.25);
+    flex: 0 0 auto;
+}
+
+#devops-dashboard .dd-controls {
+    display: grid;
+    gap: 12px;
+    justify-items: stretch;
+}
+
+@media (min-width: 640px) {
+    #devops-dashboard .dd-controls {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (min-width: 1024px) {
+    #devops-dashboard .dd-controls {
+        grid-template-columns: 1fr;
+        justify-items: end;
+    }
+}
+
+#devops-dashboard .dd-control-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--dd-surface);
+    border: 1px solid var(--dd-border);
+    border-radius: 16px;
+    padding: 12px;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+}
+
+#devops-dashboard .dd-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--dd-border);
+    background: var(--dd-surface-strong);
+    color: var(--dd-muted);
+    font-size: 0.875rem;
+    line-height: 1;
+}
+
+#devops-dashboard .dd-live-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 999px;
+    background: var(--dd-success);
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.40);
+    animation: ddPulse 1.8s ease-in-out infinite;
+}
+
+html[data-theme="dark"] #devops-dashboard .dd-live-dot {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.55);
+}
+
+@keyframes ddPulse {
+    0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.35); }
+    70% { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+
+#devops-dashboard .dd-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 11px 14px;
+    border-radius: 14px;
+    border: 1px solid var(--dd-border);
+    background: var(--dd-surface-strong);
+    color: var(--dd-text);
+    font-weight: 700;
+    text-decoration: none;
+    transition: transform var(--dd-anim) ease, box-shadow var(--dd-anim) ease, border-color var(--dd-anim) ease;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    position: relative;
+}
+
+#devops-dashboard .dd-btn:focus-visible {
+    outline: none;
+    box-shadow: var(--dd-focus);
+}
+
+#devops-dashboard .dd-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
+    border-color: var(--dd-border-strong);
+}
+
+#devops-dashboard .dd-btn:active {
+    transform: translateY(0);
+}
+
+#devops-dashboard .dd-btn-primary {
+    border: 1px solid rgba(37, 99, 235, 0.35);
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.92) 0%, rgba(29, 78, 216, 0.92) 100%);
+    color: white;
+    box-shadow: 0 14px 34px rgba(37, 99, 235, 0.22);
+}
+
+#devops-dashboard .dd-btn-primary:hover {
+    box-shadow: 0 16px 40px rgba(37, 99, 235, 0.28);
+}
+
+#devops-dashboard .dd-btn-secondary {
+    border: 1px solid rgba(147, 51, 234, 0.28);
+    background: linear-gradient(135deg, rgba(147, 51, 234, 0.90) 0%, rgba(99, 102, 241, 0.85) 100%);
+    color: white;
+    box-shadow: 0 14px 34px rgba(147, 51, 234, 0.20);
+}
+
+#devops-dashboard .dd-btn-secondary:hover {
+    box-shadow: 0 16px 40px rgba(147, 51, 234, 0.26);
+}
+
+#devops-dashboard .dd-metrics {
+    margin-top: 18px;
+    display: grid;
+    gap: var(--dd-gap);
+    grid-template-columns: 1fr;
+}
+
+@media (min-width: 640px) {
+    #devops-dashboard .dd-metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 1280px) {
+    #devops-dashboard .dd-metrics {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+#devops-dashboard .dd-card {
+    background: var(--dd-surface);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--dd-border);
+    border-radius: var(--dd-radius);
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+    transition: transform var(--dd-anim) ease, box-shadow var(--dd-anim) ease, border-color var(--dd-anim) ease;
+    overflow: clip;
+}
+
+#devops-dashboard .dd-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--dd-shadow-hover);
+    border-color: var(--dd-border-strong);
+}
+
+@media (hover: none) {
+    #devops-dashboard .dd-card:hover {
+        transform: none;
+        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+        border-color: var(--dd-border);
+    }
+}
+
+#devops-dashboard .dd-card .dd-card-head {
+    padding: 16px 16px 0 16px;
+    display: flex;
+    gap: 12px;
+    align-items: start;
+    justify-content: space-between;
+}
+
+#devops-dashboard .dd-card .dd-card-body {
+    padding: 14px 16px 16px 16px;
+}
+
+#devops-dashboard .dd-metric-label {
+    font-size: 0.9rem;
+    color: var(--dd-muted);
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#devops-dashboard .dd-metric-value {
+    font-size: 2rem;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    margin-top: 8px;
+    line-height: 1.05;
+}
+
+#devops-dashboard .dd-metric-sub {
+    margin-top: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    color: var(--dd-muted-2);
+    font-size: 0.9rem;
+}
+
+#devops-dashboard .dd-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    display: grid;
+    place-items: center;
+    color: white;
+    flex: 0 0 auto;
+}
+
+#devops-dashboard .dd-icon.blue {
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.92), rgba(99, 102, 241, 0.88));
+}
+
+#devops-dashboard .dd-icon.green {
+    background: linear-gradient(135deg, rgba(22, 163, 74, 0.92), rgba(34, 197, 94, 0.88));
+}
+
+#devops-dashboard .dd-icon.amber {
+    background: linear-gradient(135deg, rgba(217, 119, 6, 0.92), rgba(245, 158, 11, 0.88));
+}
+
+#devops-dashboard .dd-icon.red {
+    background: linear-gradient(135deg, rgba(220, 38, 38, 0.92), rgba(248, 113, 113, 0.88));
+}
+
+#devops-dashboard .dd-main-grid {
+    margin-top: 18px;
+    display: grid;
+    gap: var(--dd-gap-lg);
+    grid-template-columns: 1fr;
+}
+
+@media (min-width: 1024px) {
+    #devops-dashboard .dd-main-grid {
+        grid-template-columns: 360px minmax(0, 1fr);
+        align-items: start;
+    }
+}
+
+#devops-dashboard .dd-section-title {
+    font-size: 1.05rem;
+    font-weight: 900;
+    letter-spacing: -0.01em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#devops-dashboard .dd-section-title i {
+    opacity: 0.9;
+}
+
+#devops-dashboard .dd-icon-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    border: 1px solid var(--dd-border);
+    background: var(--dd-surface-strong);
+    color: var(--dd-text);
+    display: grid;
+    place-items: center;
+    transition: transform var(--dd-anim) ease, box-shadow var(--dd-anim) ease, border-color var(--dd-anim) ease;
+}
+
+#devops-dashboard .dd-icon-btn:hover {
+    transform: translateY(-1px);
+    border-color: var(--dd-border-strong);
+    box-shadow: 0 12px 26px rgba(15, 23, 42, 0.10);
+}
+
+#devops-dashboard .dd-icon-btn:focus-visible {
+    outline: none;
+    box-shadow: var(--dd-focus);
+}
+
+#devops-dashboard .dd-collapsible [data-collapsible-panel] {
+    display: block;
+}
+
+#devops-dashboard .dd-collapsible[data-collapsed="true"] [data-collapsible-panel] {
+    display: none;
+}
+
+#devops-dashboard .dd-actions {
+    display: grid;
+    gap: 10px;
+}
+
+#devops-dashboard .dd-action-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 14px;
+    border: 1px solid var(--dd-border);
+    background: rgba(255, 255, 255, 0.48);
+    text-decoration: none;
+    color: var(--dd-text);
+    transition: transform var(--dd-anim) ease, box-shadow var(--dd-anim) ease, border-color var(--dd-anim) ease;
+}
+
+html[data-theme="dark"] #devops-dashboard .dd-action-link {
+    background: rgba(2, 6, 23, 0.45);
+}
+
+#devops-dashboard .dd-action-link:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.10);
+    border-color: var(--dd-border-strong);
+}
+
+#devops-dashboard .dd-action-link:focus-visible {
+    outline: none;
+    box-shadow: var(--dd-focus);
+}
+
+#devops-dashboard .dd-action-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 14px;
+    display: grid;
+    place-items: center;
+    color: white;
+    flex: 0 0 auto;
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.92), rgba(147, 51, 234, 0.90));
+}
+
+#devops-dashboard .dd-action-meta {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+}
+
+#devops-dashboard .dd-action-meta strong {
+    font-weight: 900;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#devops-dashboard .dd-action-meta span {
+    color: var(--dd-muted);
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#devops-dashboard .dd-progress {
+    display: grid;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+#devops-dashboard .dd-progress-row {
+    display: grid;
+    gap: 8px;
+}
+
+#devops-dashboard .dd-progress-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    color: var(--dd-muted);
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+#devops-dashboard .dd-bar {
+    height: 10px;
+    border-radius: 999px;
+    background: rgba(148, 163, 184, 0.30);
+    overflow: hidden;
+    border: 1px solid rgba(148, 163, 184, 0.28);
+}
+
+html[data-theme="dark"] #devops-dashboard .dd-bar {
+    background: rgba(148, 163, 184, 0.20);
+    border-color: rgba(148, 163, 184, 0.22);
+}
+
+#devops-dashboard .dd-bar > span {
+    display: block;
+    height: 100%;
+    width: 0%;
+    border-radius: 999px;
+    transition: width 600ms ease;
+}
+
+#devops-dashboard .dd-bar .ok { background: linear-gradient(90deg, rgba(22, 163, 74, 0.95), rgba(34, 197, 94, 0.95)); }
+#devops-dashboard .dd-bar .warn { background: linear-gradient(90deg, rgba(217, 119, 6, 0.95), rgba(245, 158, 11, 0.95)); }
+#devops-dashboard .dd-bar .bad { background: linear-gradient(90deg, rgba(220, 38, 38, 0.95), rgba(248, 113, 113, 0.95)); }
+
+#devops-dashboard .dd-input {
+    width: 100%;
+    border-radius: 14px;
+    border: 1px solid var(--dd-border);
+    background: var(--dd-surface-strong);
+    padding: 11px 12px;
+    color: var(--dd-text);
+    font-weight: 700;
+    outline: none;
+}
+
+#devops-dashboard .dd-input::placeholder {
+    color: var(--dd-muted-2);
+    font-weight: 600;
+}
+
+#devops-dashboard .dd-input:focus {
+    box-shadow: var(--dd-focus);
+    border-color: rgba(37, 99, 235, 0.45);
+}
+
+#devops-dashboard .dd-projects {
+    display: grid;
+    gap: 12px;
+}
+
+#devops-dashboard .dd-project {
+    border: 1px solid var(--dd-border);
+    border-radius: var(--dd-radius-sm);
+    background: rgba(255, 255, 255, 0.58);
+    padding: 12px;
+    display: grid;
+    gap: 10px;
+    transition: transform var(--dd-anim) ease, box-shadow var(--dd-anim) ease, border-color var(--dd-anim) ease;
+}
+
+html[data-theme="dark"] #devops-dashboard .dd-project {
+    background: rgba(2, 6, 23, 0.45);
+}
+
+#devops-dashboard .dd-project:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.10);
+    border-color: var(--dd-border-strong);
+}
+
+#devops-dashboard .dd-project a {
+    color: inherit;
+    text-decoration: none;
+}
+
+#devops-dashboard .dd-project a:focus-visible {
+    outline: none;
+    box-shadow: var(--dd-focus);
+    border-radius: 10px;
+}
+
+#devops-dashboard .dd-project-top {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: 1fr;
+}
+
+@media (min-width: 640px) {
+    #devops-dashboard .dd-project-top {
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: start;
+    }
+}
+
+#devops-dashboard .dd-project-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+#devops-dashboard .dd-project-title strong {
+    font-weight: 900;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#devops-dashboard .dd-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+#devops-dashboard .dd-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--dd-border);
+    background: var(--dd-surface-strong);
+    color: var(--dd-muted);
+    font-size: 0.85rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+#devops-dashboard .dd-badge.role-owner {
+    border-color: rgba(147, 51, 234, 0.25);
+    color: rgba(147, 51, 234, 0.95);
+}
+
+html[data-theme="dark"] #devops-dashboard .dd-badge.role-owner {
+    color: rgba(216, 180, 254, 0.95);
+}
+
+#devops-dashboard .dd-badge.role-collab {
+    border-color: rgba(22, 163, 74, 0.25);
+    color: rgba(22, 163, 74, 0.95);
+}
+
+html[data-theme="dark"] #devops-dashboard .dd-badge.role-collab {
+    color: rgba(134, 239, 172, 0.95);
+}
+
+#devops-dashboard .dd-badge.state-ok { border-color: rgba(22, 163, 74, 0.25); color: var(--dd-success); }
+#devops-dashboard .dd-badge.state-warn { border-color: rgba(217, 119, 6, 0.25); color: var(--dd-warning); }
+#devops-dashboard .dd-badge.state-bad { border-color: rgba(220, 38, 38, 0.25); color: var(--dd-danger); }
+#devops-dashboard .dd-badge.state-unk { border-color: rgba(100, 116, 139, 0.30); color: var(--dd-muted); }
+
+#devops-dashboard .dd-project-meta {
+    display: grid;
+    gap: 4px;
+    color: var(--dd-muted);
+    font-size: 0.92rem;
+}
+
+#devops-dashboard .dd-project-meta small {
+    color: var(--dd-muted-2);
+    font-size: 0.85rem;
+}
+
+#devops-dashboard .dd-project-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+#devops-dashboard .dd-mini {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 9px 10px;
+    border-radius: 12px;
+    border: 1px solid var(--dd-border);
+    background: var(--dd-surface-strong);
+    color: var(--dd-text);
+    font-weight: 800;
+    text-decoration: none;
+    transition: transform var(--dd-anim) ease, box-shadow var(--dd-anim) ease, border-color var(--dd-anim) ease;
+}
+
+#devops-dashboard .dd-mini:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 22px rgba(15, 23, 42, 0.10);
+    border-color: var(--dd-border-strong);
+}
+
+#devops-dashboard .dd-mini:focus-visible {
+    outline: none;
+    box-shadow: var(--dd-focus);
+}
+
+#devops-dashboard .dd-tip {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+#devops-dashboard .dd-tooltip {
+    position: absolute;
+    left: 0;
+    bottom: calc(100% + 10px);
+    min-width: 220px;
+    max-width: 320px;
+    padding: 10px 12px;
+    border-radius: 14px;
+    border: 1px solid var(--dd-border);
+    background: var(--dd-surface-strong);
+    color: var(--dd-muted);
+    box-shadow: var(--dd-shadow);
+    font-size: 0.9rem;
+    line-height: 1.35;
+    opacity: 0;
+    transform: translateY(4px);
+    pointer-events: none;
+    transition: opacity var(--dd-anim) ease, transform var(--dd-anim) ease;
+    z-index: 20;
+}
+
+#devops-dashboard .dd-tip:hover .dd-tooltip,
+#devops-dashboard .dd-tip:focus-within .dd-tooltip {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #devops-dashboard * {
+        animation-duration: 1ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 1ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+{% endblock %}
+
 {% block content %}
-<body class="bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 min-h-screen">
-    
-    <!-- Animated Background Elements -->
-    <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
-        <div class="absolute top-20 left-10 w-96 h-96 bg-blue-200/40 rounded-full blur-3xl animate-pulse"></div>
-        <div class="absolute bottom-20 right-10 w-96 h-96 bg-purple-200/40 rounded-full blur-3xl animate-pulse" style="animation-delay: 2s;"></div>
-        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-cyan-200/30 rounded-full blur-3xl" style="animation: float 6s ease-in-out infinite;"></div>
-    </div>
+<div id="devops-dashboard" role="region" aria-label="DevOps dashboard" data-refresh-interval="30000">
+    <a class="dd-skip-link" href="#dd-main">Skip to dashboard content</a>
 
-    <style>
-        @keyframes float {
-            0%, 100% { transform: translate(-50%, -50%) translateY(0px); }
-            50% { transform: translate(-50%, -50%) translateY(-20px); }
-        }
-        @keyframes pulse {
-            0%, 100% { opacity: 0.4; }
-            50% { opacity: 0.6; }
-        }
-        .glass-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-        }
-        .gradient-text {
-            background: linear-gradient(135deg, #2563eb 0%, #9333ea 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-    </style>
-
-    <!-- Main Content -->
-    <div class="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 lg:py-10 relative z-10">
-        
-        <!-- Header Section -->
-        <div class="mb-6 sm:mb-8 lg:mb-12">
-            <div class="glass-card rounded-3xl shadow-xl p-6 sm:p-8 lg:p-10 border border-white/50">
-                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 sm:gap-6">
-                    <div class="text-center lg:text-left flex-1">
-                        <div class="inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl mb-4 shadow-lg">
-                            <i class="fas fa-rocket text-white text-xl sm:text-2xl"></i>
-                        </div>
-                        <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
-                            Welcome back, <span class="gradient-text block sm:inline">{{ user.first_name|default:user.email|truncatechars:15 }}</span>! 👋
-                        </h1>
-                        <p class="text-base sm:text-lg text-gray-600">Manage your DevOps projects and track deployments</p>
+    <div class="dd-inner">
+        <header class="dd-top" aria-label="Dashboard header">
+            <div class="dd-hero">
+                <div class="dd-identity">
+                    <div class="dd-mark" aria-hidden="true">
+                        <i class="fas fa-rocket"></i>
                     </div>
-                    <div class="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full lg:w-auto">
-                        <a href="{% url 'devops:project_create' %}" 
-                           class="inline-flex items-center justify-center px-4 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl hover:shadow-blue-500/30 transition-all duration-300 transform hover:-translate-y-1 text-sm sm:text-base">
-                            <i class="fas fa-plus mr-2"></i>New Project
-                        </a>
-                        <a href="{% url 'collaboration:my_invitations' %}" 
-                           class="inline-flex items-center justify-center px-4 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl hover:shadow-purple-500/30 transition-all duration-300 transform hover:-translate-y-1 text-sm sm:text-base">
-                            <i class="fas fa-envelope mr-2"></i>Invitations
-                        </a>
+                    <div class="min-w-0">
+                        <div class="dd-pill" aria-live="polite">
+                            <span class="dd-live-dot" aria-hidden="true"></span>
+                            <span>Live</span>
+                            <span aria-hidden="true">•</span>
+                            <span id="dd-last-updated">Updated just now</span>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- Statistics Cards -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6 mb-8 sm:mb-10">
-            <!-- Total Projects Card -->
-            <div class="glass-card rounded-2xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 p-4 sm:p-6 border border-white/50 group cursor-default">
-                <div class="flex items-center justify-between">
-                    <div class="min-w-0 flex-1">
-                        <p class="text-xs sm:text-sm font-medium text-gray-600 mb-1">Total Projects</p>
-                        <p class="text-2xl sm:text-3xl font-bold text-gray-900">{{ total_projects }}</p>
-                        <div class="flex flex-col sm:flex-row sm:items-center mt-2 text-xs sm:text-sm gap-1 sm:gap-0">
-                            <span class="text-blue-600 font-medium">{{ owned_projects }} owned</span>
-                            {% if collaborated_projects > 0 %}
-                                <span class="text-gray-400 mx-2 hidden sm:inline">•</span>
-                                <span class="text-green-600 font-medium">{{ collaborated_projects }} shared</span>
-                            {% endif %}
-                        </div>
-                    </div>
-                    <div class="p-3 sm:p-4 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
-                        <i class="fas fa-project-diagram text-xl sm:text-2xl text-white"></i>
-                    </div>
+                <h1 class="min-w-0">
+                    Welcome back, <span class="font-extrabold">{{ user.first_name|default:user.email|truncatechars:20 }}</span>
+                </h1>
+                <p class="dd-subtitle">
+                    Track deployments, monitor health, and jump into your projects with a fast, mobile-first dashboard.
+                </p>
+
+                <div class="mt-4 sm:mt-5 flex flex-col sm:flex-row gap-3">
+                    <a class="dd-btn dd-btn-primary" href="{% url 'devops:project_create' %}">
+                        <i class="fas fa-plus" aria-hidden="true"></i>
+                        <span>New Project</span>
+                    </a>
+                    <a class="dd-btn dd-btn-secondary" href="{% url 'collaboration:my_invitations' %}">
+                        <i class="fas fa-envelope" aria-hidden="true"></i>
+                        <span>Invitations</span>
+                    </a>
                 </div>
             </div>
 
-            <!-- Deployed Projects Card -->
-            <div class="glass-card rounded-2xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 p-4 sm:p-6 border border-white/50 group cursor-default">
-                <div class="flex items-center justify-between">
-                    <div class="min-w-0 flex-1">
-                        <p class="text-xs sm:text-sm font-medium text-gray-600 mb-1">Deployed</p>
-                        <p class="text-2xl sm:text-3xl font-bold text-green-600">{{ deployed_projects }}</p>
-                        <div class="flex items-center mt-2">
-                            {% if total_projects > 0 %}
-                                {% widthratio deployed_projects total_projects 100 as deployment_rate %}
-                                <div class="flex items-center text-xs sm:text-sm text-gray-600">
-                                    <span class="text-green-600 font-medium">{{ deployment_rate }}%</span>
-                                    <span class="ml-1">success rate</span>
+            <div class="dd-controls" aria-label="Dashboard controls">
+                <div class="dd-control-row">
+                    <div class="dd-tip">
+                        <span class="dd-pill">
+                            <i class="fas fa-shield-alt" aria-hidden="true"></i>
+                            <span>Accessibility-ready</span>
+                        </span>
+                        <span class="dd-tooltip" role="tooltip">
+                            Focus styles, reduced motion support, and keyboard-friendly interactions are enabled by default.
+                        </span>
+                    </div>
+
+                    <button type="button" class="dd-icon-btn" data-theme-toggle aria-pressed="false" aria-label="Toggle dark mode">
+                        <i class="fas fa-moon" aria-hidden="true"></i>
+                    </button>
+                </div>
+
+                <div class="dd-control-row">
+                    <button type="button" class="dd-btn" data-refresh aria-label="Refresh dashboard data">
+                        <i class="fas fa-rotate" aria-hidden="true"></i>
+                        <span>Refresh</span>
+                    </button>
+                    <a class="dd-btn" href="{% url 'devops:project_list' %}">
+                        <i class="fas fa-list" aria-hidden="true"></i>
+                        <span>All Projects</span>
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <section class="dd-metrics" aria-label="Key metrics">
+            <article class="dd-card" aria-label="Total projects">
+                <div class="dd-card-head">
+                    <div class="dd-tip">
+                        <span class="dd-metric-label">
+                            <i class="fas fa-project-diagram" aria-hidden="true"></i>
+                            Total Projects
+                        </span>
+                        <span class="dd-tooltip" role="tooltip">
+                            All projects you own and projects shared with you.
+                        </span>
+                    </div>
+                    <div class="dd-icon blue" aria-hidden="true">
+                        <i class="fas fa-layer-group"></i>
+                    </div>
+                </div>
+                <div class="dd-card-body">
+                    <output id="dd-metric-total" class="dd-metric-value" data-metric="total_projects">{{ total_projects }}</output>
+                    <div class="dd-metric-sub">
+                        <span><strong>{{ owned_projects }}</strong> owned</span>
+                        <span><strong>{{ collaborated_projects }}</strong> shared</span>
+                    </div>
+                </div>
+            </article>
+
+            <article class="dd-card" aria-label="Deployed projects">
+                <div class="dd-card-head">
+                    <div class="dd-tip">
+                        <span class="dd-metric-label">
+                            <i class="fas fa-check-circle" aria-hidden="true"></i>
+                            Deployed
+                        </span>
+                        <span class="dd-tooltip" role="tooltip">
+                            Projects with a successful deployment status.
+                        </span>
+                    </div>
+                    <div class="dd-icon green" aria-hidden="true">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                    </div>
+                </div>
+                <div class="dd-card-body">
+                    <output id="dd-metric-deployed" class="dd-metric-value" data-metric="deployed_projects">{{ deployed_projects }}</output>
+                    <div class="dd-metric-sub" aria-label="Deployment success rate">
+                        {% if total_projects > 0 %}
+                            {% widthratio deployed_projects total_projects 100 as deployment_rate %}
+                            <span><strong>{{ deployment_rate }}%</strong> success rate</span>
+                        {% else %}
+                            <span>No projects yet</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </article>
+
+            <article class="dd-card" aria-label="Pending projects">
+                <div class="dd-card-head">
+                    <div class="dd-tip">
+                        <span class="dd-metric-label">
+                            <i class="fas fa-clock" aria-hidden="true"></i>
+                            Pending
+                        </span>
+                        <span class="dd-tooltip" role="tooltip">
+                            Projects currently being deployed or awaiting action.
+                        </span>
+                    </div>
+                    <div class="dd-icon amber" aria-hidden="true">
+                        <i class="fas fa-hourglass-half"></i>
+                    </div>
+                </div>
+                <div class="dd-card-body">
+                    <output id="dd-metric-pending" class="dd-metric-value" data-metric="pending_projects">{{ pending_projects }}</output>
+                    <div class="dd-metric-sub">
+                        {% if pending_projects > 0 %}
+                            <span class="dd-badge state-warn"><i class="fas fa-clock" aria-hidden="true"></i><span>In progress</span></span>
+                        {% else %}
+                            <span>All up to date</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </article>
+
+            <article class="dd-card" aria-label="Failed projects">
+                <div class="dd-card-head">
+                    <div class="dd-tip">
+                        <span class="dd-metric-label">
+                            <i class="fas fa-triangle-exclamation" aria-hidden="true"></i>
+                            Failed
+                        </span>
+                        <span class="dd-tooltip" role="tooltip">
+                            Projects with a failed deployment status that may need attention.
+                        </span>
+                    </div>
+                    <div class="dd-icon red" aria-hidden="true">
+                        <i class="fas fa-bug"></i>
+                    </div>
+                </div>
+                <div class="dd-card-body">
+                    <output id="dd-metric-failed" class="dd-metric-value" data-metric="failed_projects">{{ failed_projects }}</output>
+                    <div class="dd-metric-sub">
+                        {% if failed_projects > 0 %}
+                            <span class="dd-badge state-bad"><i class="fas fa-triangle-exclamation" aria-hidden="true"></i><span>Needs attention</span></span>
+                        {% else %}
+                            <span>No issues</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </article>
+        </section>
+
+        <div class="dd-main-grid" id="dd-main">
+            <aside class="grid gap-5" aria-label="Sidebar panels">
+                <section class="dd-card dd-collapsible" data-section="quick-actions" data-collapsed="false">
+                    <div class="dd-card-head">
+                        <h2 class="dd-section-title">
+                            <i class="fas fa-bolt" aria-hidden="true"></i>
+                            Quick Actions
+                        </h2>
+                        <button type="button" class="dd-icon-btn" data-collapse-toggle aria-expanded="true" aria-controls="dd-quick-actions">
+                            <i class="fas fa-chevron-up" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                    <div class="dd-card-body" id="dd-quick-actions" data-collapsible-panel>
+                        <div class="dd-actions">
+                            <a class="dd-action-link" href="{% url 'devops:project_create' %}">
+                                <div class="dd-action-icon" aria-hidden="true"><i class="fas fa-plus"></i></div>
+                                <div class="dd-action-meta">
+                                    <strong>Create Project</strong>
+                                    <span>Start a new pipeline</span>
                                 </div>
-                            {% else %}
-                                <span class="text-xs sm:text-sm text-gray-500">No projects yet</span>
-                            {% endif %}
-                        </div>
-                    </div>
-                    <div class="p-3 sm:p-4 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
-                        <i class="fas fa-check-circle text-xl sm:text-2xl text-white"></i>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Pending Projects Card -->
-            <div class="glass-card rounded-2xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 p-4 sm:p-6 border border-white/50 group cursor-default">
-                <div class="flex items-center justify-between">
-                    <div class="min-w-0 flex-1">
-                        <p class="text-xs sm:text-sm font-medium text-gray-600 mb-1">Pending</p>
-                        <p class="text-2xl sm:text-3xl font-bold text-yellow-600">{{ pending_projects }}</p>
-                        <div class="mt-2">
-                            {% if pending_projects > 0 %}
-                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                    <i class="fas fa-clock mr-1"></i>In Progress
-                                </span>
-                            {% else %}
-                                <span class="text-xs sm:text-sm text-gray-500">All up to date</span>
-                            {% endif %}
-                        </div>
-                    </div>
-                    <div class="p-3 sm:p-4 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-2xl flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
-                        <i class="fas fa-clock text-xl sm:text-2xl text-white"></i>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Failed Projects Card -->
-            <div class="glass-card rounded-2xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 p-4 sm:p-6 border border-white/50 group cursor-default">
-                <div class="flex items-center justify-between">
-                    <div class="min-w-0 flex-1">
-                        <p class="text-xs sm:text-sm font-medium text-gray-600 mb-1">Failed</p>
-                        <p class="text-2xl sm:text-3xl font-bold text-red-600">{{ failed_projects }}</p>
-                        <div class="mt-2">
-                            {% if failed_projects > 0 %}
-                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                    <i class="fas fa-exclamation-triangle mr-1"></i>Needs Attention
-                                </span>
-                            {% else %}
-                                <span class="text-xs sm:text-sm text-gray-500">No issues</span>
-                            {% endif %}
-                        </div>
-                    </div>
-                    <div class="p-3 sm:p-4 bg-gradient-to-br from-red-500 to-red-600 rounded-2xl flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
-                        <i class="fas fa-exclamation-triangle text-xl sm:text-2xl text-white"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Quick Actions & Recent Projects Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
-            
-            <!-- Quick Actions Panel -->
-            <div class="lg:col-span-1 order-2 lg:order-1">
-                <div class="glass-card rounded-2xl shadow-lg p-4 sm:p-6 border border-white/50">
-                    <h3 class="text-lg sm:text-xl font-bold text-gray-900 mb-4 sm:mb-6 flex items-center">
-                        <div class="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl mr-2 sm:mr-3">
-                            <i class="fas fa-bolt text-white"></i>
-                        </div>
-                        Quick Actions
-                    </h3>
-                    <div class="space-y-3 sm:space-y-4">
-                        <a href="{% url 'devops:project_create' %}" 
-                           class="flex items-center p-3 sm:p-4 bg-gradient-to-r from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 rounded-xl transition-all duration-300 group hover:shadow-lg hover:-translate-y-0.5">
-                            <div class="p-2 sm:p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl mr-3 sm:mr-4 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 flex-shrink-0">
-                                <i class="fas fa-plus text-white text-sm sm:text-base"></i>
-                            </div>
-                            <div class="min-w-0">
-                                <p class="font-semibold text-gray-900 text-sm sm:text-base group-hover:text-blue-600 transition-colors">Create Project</p>
-                                <p class="text-xs sm:text-sm text-gray-600">Start a new DevOps project</p>
-                            </div>
-                        </a>
-
-                        <a href="{% url 'devops:project_list' %}" 
-                           class="flex items-center p-3 sm:p-4 bg-gradient-to-r from-gray-50 to-gray-100 hover:from-gray-100 hover:to-gray-200 rounded-xl transition-all duration-300 group hover:shadow-lg hover:-translate-y-0.5">
-                            <div class="p-2 sm:p-3 bg-gradient-to-br from-gray-600 to-gray-700 rounded-xl mr-3 sm:mr-4 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 flex-shrink-0">
-                                <i class="fas fa-list text-white text-sm sm:text-base"></i>
-                            </div>
-                            <div class="min-w-0">
-                                <p class="font-semibold text-gray-900 text-sm sm:text-base group-hover:text-gray-600 transition-colors">View All Projects</p>
-                                <p class="text-xs sm:text-sm text-gray-600">Manage your projects</p>
-                            </div>
-                        </a>
-
-                        <a href="{% url 'collaboration:my_collaborations' %}" 
-                           class="flex items-center p-3 sm:p-4 bg-gradient-to-r from-green-50 to-green-100 hover:from-green-100 hover:to-green-200 rounded-xl transition-all duration-300 group hover:shadow-lg hover:-translate-y-0.5">
-                            <div class="p-2 sm:p-3 bg-gradient-to-br from-green-500 to-green-600 rounded-xl mr-3 sm:mr-4 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 flex-shrink-0">
-                                <i class="fas fa-users text-white text-sm sm:text-base"></i>
-                            </div>
-                            <div class="min-w-0">
-                                <p class="font-semibold text-gray-900 text-sm sm:text-base group-hover:text-green-600 transition-colors">My Collaborations</p>
-                                <p class="text-xs sm:text-sm text-gray-600">Projects you're part of</p>
-                            </div>
-                        </a>
-
-                        <a href="{% url 'collaboration:my_invitations' %}" 
-                           class="flex items-center p-3 sm:p-4 bg-gradient-to-r from-purple-50 to-purple-100 hover:from-purple-100 hover:to-purple-200 rounded-xl transition-all duration-300 group hover:shadow-lg hover:-translate-y-0.5">
-                            <div class="p-2 sm:p-3 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl mr-3 sm:mr-4 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 flex-shrink-0">
-                                <i class="fas fa-envelope text-white text-sm sm:text-base"></i>
-                            </div>
-                            <div class="min-w-0">
-                                <p class="font-semibold text-gray-900 text-sm sm:text-base group-hover:text-purple-600 transition-colors">Pending Invitations</p>
-                                <p class="text-xs sm:text-sm text-gray-600">Review collaboration requests</p>
-                            </div>
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Recent Projects Panel -->
-            <div class="lg:col-span-2 order-1 lg:order-2">
-                <div class="glass-card rounded-2xl shadow-lg border border-white/50">
-                    <div class="p-4 sm:p-6 border-b border-gray-200">
-                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                            <h3 class="text-lg sm:text-xl font-bold text-gray-900 flex items-center">
-                                <div class="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl mr-2 sm:mr-3">
-                                    <i class="fas fa-history text-white"></i>
+                            </a>
+                            <a class="dd-action-link" href="{% url 'devops:project_list' %}">
+                                <div class="dd-action-icon" aria-hidden="true"><i class="fas fa-diagram-project"></i></div>
+                                <div class="dd-action-meta">
+                                    <strong>Manage Projects</strong>
+                                    <span>Browse and update settings</span>
                                 </div>
-                                Recent Projects
-                            </h3>
-                            <a href="{% url 'devops:project_list' %}" 
-                               class="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium text-sm transition-colors duration-200 self-start sm:self-auto group">
-                                View All 
-                                <i class="fas fa-arrow-right ml-1 group-hover:translate-x-1 transition-transform"></i>
+                            </a>
+                            <a class="dd-action-link" href="{% url 'collaboration:my_collaborations' %}">
+                                <div class="dd-action-icon" aria-hidden="true"><i class="fas fa-users"></i></div>
+                                <div class="dd-action-meta">
+                                    <strong>Collaborations</strong>
+                                    <span>Projects you’re part of</span>
+                                </div>
+                            </a>
+                            <a class="dd-action-link" href="{% url 'collaboration:my_invitations' %}">
+                                <div class="dd-action-icon" aria-hidden="true"><i class="fas fa-inbox"></i></div>
+                                <div class="dd-action-meta">
+                                    <strong>Invitations</strong>
+                                    <span>Review pending requests</span>
+                                </div>
                             </a>
                         </div>
                     </div>
-                    <div class="p-4 sm:p-6">
+                </section>
+
+                <section class="dd-card dd-collapsible" data-section="health" data-collapsed="false">
+                    <div class="dd-card-head">
+                        <h2 class="dd-section-title">
+                            <i class="fas fa-heart-pulse" aria-hidden="true"></i>
+                            Deployment Health
+                        </h2>
+                        <button type="button" class="dd-icon-btn" data-collapse-toggle aria-expanded="true" aria-controls="dd-health">
+                            <i class="fas fa-chevron-up" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                    <div class="dd-card-body" id="dd-health" data-collapsible-panel>
+                        {% if total_projects > 0 %}
+                            {% widthratio deployed_projects total_projects 100 as dd_ok %}
+                            {% widthratio pending_projects total_projects 100 as dd_warn %}
+                            {% widthratio failed_projects total_projects 100 as dd_bad %}
+                        {% endif %}
+
+                        <div class="dd-progress" aria-label="Deployment health breakdown">
+                            <div class="dd-progress-row">
+                                <div class="dd-progress-label">
+                                    <span>Deployed</span>
+                                    <span><strong id="dd-rate-ok">{{ dd_ok|default:"0" }}%</strong></span>
+                                </div>
+                                <div class="dd-bar" aria-hidden="true"><span class="ok" data-bar="ok" style="width: {{ dd_ok|default:'0' }}%"></span></div>
+                            </div>
+                            <div class="dd-progress-row">
+                                <div class="dd-progress-label">
+                                    <span>Pending</span>
+                                    <span><strong id="dd-rate-warn">{{ dd_warn|default:"0" }}%</strong></span>
+                                </div>
+                                <div class="dd-bar" aria-hidden="true"><span class="warn" data-bar="warn" style="width: {{ dd_warn|default:'0' }}%"></span></div>
+                            </div>
+                            <div class="dd-progress-row">
+                                <div class="dd-progress-label">
+                                    <span>Failed</span>
+                                    <span><strong id="dd-rate-bad">{{ dd_bad|default:"0" }}%</strong></span>
+                                </div>
+                                <div class="dd-bar" aria-hidden="true"><span class="bad" data-bar="bad" style="width: {{ dd_bad|default:'0' }}%"></span></div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 grid gap-2">
+                            <span class="dd-pill" aria-label="Data source">
+                                <i class="fas fa-database" aria-hidden="true"></i>
+                                <span>Data updates automatically while active</span>
+                            </span>
+                        </div>
+                    </div>
+                </section>
+            </aside>
+
+            <section class="dd-card dd-collapsible" data-section="projects" data-collapsed="false" aria-label="Recent projects">
+                <div class="dd-card-head">
+                    <h2 class="dd-section-title">
+                        <i class="fas fa-clock-rotate-left" aria-hidden="true"></i>
+                        Recent Projects
+                    </h2>
+                    <div class="flex gap-2 items-center">
+                        <a class="dd-mini" href="{% url 'devops:project_list' %}">
+                            <i class="fas fa-arrow-right" aria-hidden="true"></i>
+                            <span>View all</span>
+                        </a>
+                        <button type="button" class="dd-icon-btn" data-collapse-toggle aria-expanded="true" aria-controls="dd-projects-panel">
+                            <i class="fas fa-chevron-up" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="dd-card-body" id="dd-projects-panel" data-collapsible-panel>
+                    <div class="grid gap-3">
+                        <label class="sr-only" for="dd-project-search">Search projects</label>
+                        <input id="dd-project-search" class="dd-input" type="search" inputmode="search" autocomplete="off" placeholder="Search by name or domain" aria-controls="dd-project-list">
+                        <div class="dd-pill" aria-live="polite">
+                            <i class="fas fa-filter" aria-hidden="true"></i>
+                            <span id="dd-project-count">Showing all</span>
+                        </div>
+                    </div>
+
+                    <div class="mt-4" id="dd-project-list">
                         {% if recent_projects %}
-                            <div class="space-y-3 sm:space-y-4">
+                            <div class="dd-projects">
                                 {% for project in recent_projects %}
-                                    <div class="group p-3 sm:p-4 border border-gray-200 rounded-xl hover:border-blue-400 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 bg-white/50">
-                                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                                            <div class="flex items-center min-w-0 flex-1">
-                                                <div class="p-2 sm:p-3 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 mr-3 sm:mr-4 flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
-                                                    <i class="fas fa-code-branch text-white text-sm sm:text-base"></i>
-                                                </div>
-                                                <div class="min-w-0 flex-1">
-                                                    <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-1">
-                                                        <a href="{% url 'devops:project_detail' project.pk %}" 
-                                                           class="font-semibold text-gray-900 hover:text-blue-600 transition-colors duration-200 truncate text-sm sm:text-base group-hover:underline">
-                                                            {{ project.project_name }}
-                                                        </a>
-                                                        <!-- Role Badge -->
-                                                        {% if project.owner == user %}
-                                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-purple-500 to-purple-600 text-white self-start">
-                                                                <i class="fas fa-crown mr-1"></i>Owner
-                                                            </span>
-                                                        {% else %}
-                                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-green-500 to-green-600 text-white self-start">
-                                                                <i class="fas fa-handshake mr-1"></i>Collaborator
-                                                            </span>
-                                                        {% endif %}
-                                                    </div>
-                                                    <p class="text-xs sm:text-sm text-gray-600 truncate">{{ project.domain_name }}</p>
-                                                    <p class="text-xs text-gray-500 mt-1">Updated {{ project.created_at|timesince }} ago</p>
-                                                </div>
-                                            </div>
-                                            <div class="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 flex-shrink-0">
-                                                <!-- Status Badge -->
-                                                <span class="inline-flex items-center px-2 sm:px-3 py-1 rounded-full text-xs font-medium
-                                                    {% if project.deployment_status == 'deployed' %}bg-gradient-to-r from-green-400 to-green-500 text-white shadow-md
-                                                    {% elif project.deployment_status == 'pending' %}bg-gradient-to-r from-yellow-400 to-yellow-500 text-white shadow-md
-                                                    {% elif project.deployment_status == 'failed' %}bg-gradient-to-r from-red-400 to-red-500 text-white shadow-md
-                                                    {% else %}bg-gradient-to-r from-gray-400 to-gray-500 text-white shadow-md{% endif %}">
-                                                    {% if project.deployment_status == 'deployed' %}
-                                                        <i class="fas fa-check-circle mr-1"></i>
-                                                    {% elif project.deployment_status == 'pending' %}
-                                                        <i class="fas fa-clock mr-1"></i>
-                                                    {% elif project.deployment_status == 'failed' %}
-                                                        <i class="fas fa-exclamation-triangle mr-1"></i>
-                                                    {% endif %}
-                                                    <span class="hidden sm:inline">{{ project.get_deployment_status_display }}</span>
-                                                    <span class="sm:hidden">
-                                                        {% if project.deployment_status == 'deployed' %}✓
-                                                        {% elif project.deployment_status == 'pending' %}⏳
-                                                        {% elif project.deployment_status == 'failed' %}⚠️
-                                                        {% else %}—{% endif %}
-                                                    </span>
+                                    <article class="dd-project" data-project data-name="{{ project.project_name|lower }}" data-domain="{{ project.domain_name|lower }}">
+                                        <div class="dd-project-top">
+                                            <div class="dd-project-title">
+                                                <span class="dd-icon blue" aria-hidden="true" style="width: 40px; height: 40px; border-radius: 14px;">
+                                                    <i class="fas fa-code-branch"></i>
                                                 </span>
-                                                
-                                                <!-- Action Buttons -->
-                                                <div class="flex gap-1 sm:gap-2 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300">
-                                                    <a href="{% url 'devops:server_code' project.pk %}" 
-                                                       class="p-1.5 sm:p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-all duration-200 hover:scale-110"
-                                                       title="View Code">
-                                                        <i class="fas fa-code text-xs sm:text-sm"></i>
-                                                    </a>
-                                                    <a href="{% url 'devops:project_detail' project.pk %}" 
-                                                       class="p-1.5 sm:p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-all duration-200 hover:scale-110"
-                                                       title="View Details">
-                                                        <i class="fas fa-eye text-xs sm:text-sm"></i>
-                                                    </a>
-                                                    {% if project.owner == user %}
-                                                        <a href="{% url 'collaboration:collaborator_list' project_id=project.pk %}" 
-                                                           class="p-1.5 sm:p-2 text-purple-600 hover:bg-purple-100 rounded-lg transition-all duration-200 hover:scale-110"
-                                                           title="Manage Team">
-                                                            <i class="fas fa-users text-xs sm:text-sm"></i>
-                                                        </a>
-                                                    {% endif %}
-                                                </div>
+                                                <a href="{% url 'devops:project_detail' project.pk %}">
+                                                    <strong title="{{ project.project_name }}">{{ project.project_name }}</strong>
+                                                </a>
+                                            </div>
+
+                                            <div class="dd-badges" aria-label="Project badges">
+                                                {% if project.owner == user %}
+                                                    <span class="dd-badge role-owner"><i class="fas fa-crown" aria-hidden="true"></i><span>Owner</span></span>
+                                                {% else %}
+                                                    <span class="dd-badge role-collab"><i class="fas fa-handshake" aria-hidden="true"></i><span>Collaborator</span></span>
+                                                {% endif %}
+
+                                                {% if project.deployment_status == 'deployed' %}
+                                                    <span class="dd-badge state-ok"><i class="fas fa-check-circle" aria-hidden="true"></i><span>{{ project.get_deployment_status_display }}</span></span>
+                                                {% elif project.deployment_status == 'pending' %}
+                                                    <span class="dd-badge state-warn"><i class="fas fa-clock" aria-hidden="true"></i><span>{{ project.get_deployment_status_display }}</span></span>
+                                                {% elif project.deployment_status == 'failed' %}
+                                                    <span class="dd-badge state-bad"><i class="fas fa-triangle-exclamation" aria-hidden="true"></i><span>{{ project.get_deployment_status_display }}</span></span>
+                                                {% else %}
+                                                    <span class="dd-badge state-unk"><i class="fas fa-minus" aria-hidden="true"></i><span>{{ project.get_deployment_status_display }}</span></span>
+                                                {% endif %}
                                             </div>
                                         </div>
-                                    </div>
+
+                                        <div class="dd-project-meta">
+                                            <div class="truncate" title="{{ project.domain_name }}">{{ project.domain_name }}</div>
+                                            <small>Updated {{ project.created_at|timesince }} ago</small>
+                                        </div>
+
+                                        <div class="dd-project-actions" aria-label="Project actions">
+                                            <a class="dd-mini" href="{% url 'devops:server_code' project.pk %}" aria-label="View server code for {{ project.project_name }}">
+                                                <i class="fas fa-code" aria-hidden="true"></i>
+                                                <span>Code</span>
+                                            </a>
+                                            <a class="dd-mini" href="{% url 'devops:project_detail' project.pk %}" aria-label="View details for {{ project.project_name }}">
+                                                <i class="fas fa-eye" aria-hidden="true"></i>
+                                                <span>Details</span>
+                                            </a>
+                                            {% if project.owner == user %}
+                                                <a class="dd-mini" href="{% url 'collaboration:collaborator_list' project_id=project.pk %}" aria-label="Manage team for {{ project.project_name }}">
+                                                    <i class="fas fa-users" aria-hidden="true"></i>
+                                                    <span>Team</span>
+                                                </a>
+                                            {% endif %}
+                                        </div>
+                                    </article>
                                 {% endfor %}
                             </div>
                         {% else %}
-                            <div class="text-center py-8 sm:py-12">
-                                <div class="p-4 sm:p-6 bg-gradient-to-br from-gray-200 to-gray-300 rounded-full w-16 h-16 sm:w-24 sm:h-24 mx-auto mb-4 sm:mb-6 flex items-center justify-center shadow-lg">
-                                    <i class="fas fa-folder-open text-2xl sm:text-3xl text-gray-400"></i>
+                            <div class="grid gap-3 text-center py-10">
+                                <div class="dd-pill mx-auto">
+                                    <i class="fas fa-folder-open" aria-hidden="true"></i>
+                                    <span>No projects yet</span>
                                 </div>
-                                <h4 class="text-base sm:text-lg font-semibold text-gray-700 mb-2">No projects yet</h4>
-                                <p class="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6 max-w-md mx-auto px-4">
-                                    Start your DevOps journey by creating your first project and begin tracking deployments.
+                                <p class="text-sm" style="color: var(--dd-muted);">
+                                    Create your first project to start tracking deployments and progress.
                                 </p>
-                                <a href="{% url 'devops:project_create' %}" 
-                                   class="inline-flex items-center px-4 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl hover:shadow-blue-500/30 transition-all duration-300 transform hover:-translate-y-1 text-sm sm:text-base">
-                                    <i class="fas fa-plus mr-2"></i>Create Your First Project
-                                </a>
+                                <div class="flex justify-center">
+                                    <a class="dd-btn dd-btn-primary" href="{% url 'devops:project_create' %}">
+                                        <i class="fas fa-plus" aria-hidden="true"></i>
+                                        <span>Create Project</span>
+                                    </a>
+                                </div>
                             </div>
                         {% endif %}
                     </div>
                 </div>
-            </div>
+            </section>
         </div>
     </div>
+</div>
 
-    <!-- Enhanced JavaScript for better interactions -->
-    <script>
-        // Add smooth scroll behavior
-        document.documentElement.style.scrollBehavior = 'smooth';
+<script>
+    (function() {
+        const root = document.documentElement;
+        const dashboard = document.getElementById('devops-dashboard');
+        if (!dashboard) return;
 
-        // Add ripple effect to buttons
-        document.querySelectorAll('a, button').forEach(button => {
-            button.addEventListener('click', function(e) {
-                const ripple = document.createElement('span');
-                const rect = this.getBoundingClientRect();
-                const size = Math.max(rect.width, rect.height);
-                const x = e.clientX - rect.left - size / 2;
-                const y = e.clientY - rect.top - size / 2;
-                
-                ripple.style.cssText = `
-                    position: absolute;
-                    width: ${size}px;
-                    height: ${size}px;
-                    left: ${x}px;
-                    top: ${y}px;
-                    background: rgba(255, 255, 255, 0.4);
-                    border-radius: 50%;
-                    transform: scale(0);
-                    animation: ripple 0.6s ease-out;
-                    pointer-events: none;
-                `;
-                
-                this.style.position = 'relative';
-                this.style.overflow = 'hidden';
-                this.appendChild(ripple);
-                
-                setTimeout(() => ripple.remove(), 600);
-            });
-        });
+        const prefersDark = () => {
+            try {
+                return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            } catch (_) {
+                return false;
+            }
+        };
 
-        // Add ripple animation
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes ripple {
-                to {
-                    transform: scale(4);
-                    opacity: 0;
+        const getStoredTheme = () => {
+            try {
+                return localStorage.getItem('dd-theme');
+            } catch (_) {
+                return null;
+            }
+        };
+
+        const setStoredTheme = (theme) => {
+            try {
+                localStorage.setItem('dd-theme', theme);
+            } catch (_) {}
+        };
+
+        const applyTheme = (theme) => {
+            root.dataset.theme = theme;
+            const toggle = dashboard.querySelector('[data-theme-toggle]');
+            if (toggle) {
+                const isDark = theme === 'dark';
+                toggle.setAttribute('aria-pressed', String(isDark));
+                toggle.setAttribute('aria-label', isDark ? 'Toggle light mode' : 'Toggle dark mode');
+                const icon = toggle.querySelector('i');
+                if (icon) {
+                    icon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
                 }
             }
-            @keyframes slideInUp {
-                from {
-                    opacity: 0;
-                    transform: translateY(20px);
-                }
-                to {
-                    opacity: 1;
-                    transform: translateY(0);
+        };
+
+        const initialTheme = getStoredTheme() || (prefersDark() ? 'dark' : 'light');
+        applyTheme(initialTheme);
+
+        const lastUpdatedEl = document.getElementById('dd-last-updated');
+        let lastUpdateTs = Date.now();
+
+        const setLastUpdated = (ts) => {
+            lastUpdateTs = ts;
+            updateLastUpdatedText();
+        };
+
+        const updateLastUpdatedText = () => {
+            if (!lastUpdatedEl) return;
+            const seconds = Math.max(0, Math.floor((Date.now() - lastUpdateTs) / 1000));
+            if (seconds < 5) {
+                lastUpdatedEl.textContent = 'Updated just now';
+            } else if (seconds < 60) {
+                lastUpdatedEl.textContent = `Updated ${seconds}s ago`;
+            } else {
+                const minutes = Math.floor(seconds / 60);
+                lastUpdatedEl.textContent = `Updated ${minutes}m ago`;
+            }
+        };
+
+        const setCollapsibleState = (sectionEl, collapsed) => {
+            sectionEl.dataset.collapsed = collapsed ? 'true' : 'false';
+            const toggle = sectionEl.querySelector('[data-collapse-toggle]');
+            const panel = sectionEl.querySelector('[data-collapsible-panel]');
+            if (toggle) {
+                toggle.setAttribute('aria-expanded', String(!collapsed));
+                const icon = toggle.querySelector('i');
+                if (icon) {
+                    icon.className = collapsed ? 'fas fa-chevron-down' : 'fas fa-chevron-up';
                 }
             }
-        `;
-        document.head.appendChild(style);
+            if (panel && panel.id && toggle) {
+                toggle.setAttribute('aria-controls', panel.id);
+            }
+        };
 
-        // Add loading states for action buttons
-        document.querySelectorAll('a[href*="create"], a[href*="edit"]').forEach(link => {
-            link.addEventListener('click', function(e) {
-                const icon = this.querySelector('i');
-                if (icon && !icon.classList.contains('fa-spin')) {
-                    const originalClass = icon.className;
-                    icon.className = 'fas fa-spinner fa-spin mr-2';
-                    
-                    // Reset icon after 3 seconds if page doesn't navigate
-                    setTimeout(() => {
-                        if (icon) {
-                            icon.className = originalClass;
-                        }
-                    }, 3000);
+        const restoreCollapsibles = () => {
+            const sections = dashboard.querySelectorAll('.dd-collapsible[data-section]');
+            sections.forEach((sectionEl) => {
+                const key = `dd-collapse:${sectionEl.dataset.section}`;
+                let collapsed = sectionEl.dataset.collapsed === 'true';
+                try {
+                    const stored = localStorage.getItem(key);
+                    if (stored === 'true' || stored === 'false') {
+                        collapsed = stored === 'true';
+                    }
+                } catch (_) {}
+                setCollapsibleState(sectionEl, collapsed);
+            });
+        };
+
+        const persistCollapsible = (sectionEl) => {
+            const key = `dd-collapse:${sectionEl.dataset.section}`;
+            try {
+                localStorage.setItem(key, sectionEl.dataset.collapsed === 'true' ? 'true' : 'false');
+            } catch (_) {}
+        };
+
+        restoreCollapsibles();
+
+        dashboard.addEventListener('click', (e) => {
+            const themeToggle = e.target.closest && e.target.closest('[data-theme-toggle]');
+            if (themeToggle) {
+                const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
+                applyTheme(next);
+                setStoredTheme(next);
+                return;
+            }
+
+            const collapseToggle = e.target.closest && e.target.closest('[data-collapse-toggle]');
+            if (collapseToggle) {
+                const sectionEl = collapseToggle.closest('.dd-collapsible');
+                if (!sectionEl) return;
+                const isCollapsed = sectionEl.dataset.collapsed === 'true';
+                setCollapsibleState(sectionEl, !isCollapsed);
+                persistCollapsible(sectionEl);
+                return;
+            }
+        }, { passive: true });
+
+        const metricEls = {
+            total_projects: dashboard.querySelector('[data-metric="total_projects"]'),
+            deployed_projects: dashboard.querySelector('[data-metric="deployed_projects"]'),
+            pending_projects: dashboard.querySelector('[data-metric="pending_projects"]'),
+            failed_projects: dashboard.querySelector('[data-metric="failed_projects"]')
+        };
+
+        const sanitizeInt = (value) => {
+            const n = Number.parseInt(String(value), 10);
+            return Number.isFinite(n) && n >= 0 ? n : 0;
+        };
+
+        const updateMetric = (key, value) => {
+            const el = metricEls[key];
+            if (!el) return;
+            const next = sanitizeInt(value);
+            el.textContent = String(next);
+        };
+
+        const updateHealthBars = (total, deployed, pending, failed) => {
+            const safeTotal = Math.max(0, sanitizeInt(total));
+            const pct = (num) => safeTotal > 0 ? Math.round((sanitizeInt(num) / safeTotal) * 100) : 0;
+
+            const ok = pct(deployed);
+            const warn = pct(pending);
+            const bad = pct(failed);
+
+            const okEl = document.getElementById('dd-rate-ok');
+            const warnEl = document.getElementById('dd-rate-warn');
+            const badEl = document.getElementById('dd-rate-bad');
+            if (okEl) okEl.textContent = `${ok}%`;
+            if (warnEl) warnEl.textContent = `${warn}%`;
+            if (badEl) badEl.textContent = `${bad}%`;
+
+            const setBar = (name, percent) => {
+                const bar = dashboard.querySelector(`[data-bar="${name}"]`);
+                if (bar) bar.style.width = `${Math.max(0, Math.min(100, percent))}%`;
+            };
+            setBar('ok', ok);
+            setBar('warn', warn);
+            setBar('bad', bad);
+        };
+
+        const projectSearch = document.getElementById('dd-project-search');
+        const projectCount = document.getElementById('dd-project-count');
+        const projectCards = Array.from(dashboard.querySelectorAll('[data-project]'));
+
+        const applyProjectFilter = (query) => {
+            const q = String(query || '').trim().toLowerCase();
+            let shown = 0;
+            projectCards.forEach((card) => {
+                const name = (card.getAttribute('data-name') || '');
+                const domain = (card.getAttribute('data-domain') || '');
+                const match = !q || name.includes(q) || domain.includes(q);
+                card.style.display = match ? '' : 'none';
+                if (match) shown += 1;
+            });
+
+            if (projectCount) {
+                if (!q) {
+                    projectCount.textContent = 'Showing all';
+                } else {
+                    projectCount.textContent = `Showing ${shown} result${shown === 1 ? '' : 's'}`;
                 }
-            });
-        });
+            }
+        };
 
-        // Add stagger animation to cards on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            const cards = document.querySelectorAll('.glass-card');
-            cards.forEach((card, index) => {
-                card.style.animation = `slideInUp 0.5s ease-out ${index * 0.1}s backwards`;
-            });
-        });
-
-        // Add hover effects for cards with touch support
-        document.querySelectorAll('.group').forEach(card => {
-            card.addEventListener('mouseenter', function() {
-                if (window.innerWidth >= 640) { // Only on larger screens
-                    this.style.transform = 'translateY(-4px)';
-                }
-            });
-            
-            card.addEventListener('mouseleave', function() {
-                this.style.transform = 'translateY(0)';
-            });
-
-            // Touch support for mobile devices
-            card.addEventListener('touchstart', function() {
-                this.style.transform = 'translateY(-2px)';
-            });
-
-            card.addEventListener('touchend', function() {
-                setTimeout(() => {
-                    this.style.transform = 'translateY(0)';
-                }, 150);
-            });
-        });
-
-        // Auto-refresh statistics every 30 seconds (only on desktop)
-        if (window.innerWidth >= 1024) {
-            setInterval(() => {
-                // Only refresh if user is active (has interacted recently)
-                if (document.hasFocus()) {
-                    fetch(window.location.href, {
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest'
-                        }
-                    }).then(response => {
-                        if (response.ok) {
-                            // Optionally update statistics without full page reload
-                            console.log('Statistics refreshed');
-                        }
-                    }).catch(err => {
-                        console.log('Auto-refresh failed:', err);
-                    });
-                }
-            }, 30000);
+        let filterTimer = null;
+        if (projectSearch) {
+            projectSearch.addEventListener('input', (e) => {
+                if (filterTimer) window.clearTimeout(filterTimer);
+                filterTimer = window.setTimeout(() => {
+                    applyProjectFilter(e.target.value);
+                }, 90);
+            }, { passive: true });
         }
 
-        // Handle orientation change
-        window.addEventListener('orientationchange', function() {
-            setTimeout(() => {
-                // Force a reflow to handle any layout issues
-                document.body.style.display = 'none';
-                document.body.offsetHeight; // Trigger reflow
-                document.body.style.display = '';
-            }, 100);
-        });
+        const refreshBtn = dashboard.querySelector('[data-refresh]');
+        const refreshIntervalMs = sanitizeInt(dashboard.getAttribute('data-refresh-interval')) || 30000;
+        let refreshTimer = null;
+        let inFlight = false;
 
-        // Optimize for mobile performance
-        if ('ontouchstart' in window) {
-            // Disable hover effects on touch devices
-            document.documentElement.classList.add('touch-device');
-            
-            // Add CSS for touch devices
-            const touchStyle = document.createElement('style');
-            touchStyle.textContent = `
-                .touch-device .group:hover {
-                    transform: none !important;
+        const readMetricsFromDOM = () => {
+            const total = metricEls.total_projects ? sanitizeInt(metricEls.total_projects.textContent) : 0;
+            const deployed = metricEls.deployed_projects ? sanitizeInt(metricEls.deployed_projects.textContent) : 0;
+            const pending = metricEls.pending_projects ? sanitizeInt(metricEls.pending_projects.textContent) : 0;
+            const failed = metricEls.failed_projects ? sanitizeInt(metricEls.failed_projects.textContent) : 0;
+            return { total, deployed, pending, failed };
+        };
+
+        const tryFetchJsonUpdate = async () => {
+            if (inFlight) return false;
+            inFlight = true;
+            try {
+                const res = await fetch(window.location.href, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+                    cache: 'no-store',
+                    credentials: 'same-origin'
+                });
+                const contentType = res.headers.get('content-type') || '';
+                if (!res.ok || !contentType.includes('application/json')) return false;
+                const data = await res.json();
+
+                if (data && typeof data === 'object') {
+                    updateMetric('total_projects', data.total_projects);
+                    updateMetric('deployed_projects', data.deployed_projects);
+                    updateMetric('pending_projects', data.pending_projects);
+                    updateMetric('failed_projects', data.failed_projects);
+
+                    const snapshot = readMetricsFromDOM();
+                    updateHealthBars(snapshot.total, snapshot.deployed, snapshot.pending, snapshot.failed);
+                    setLastUpdated(Date.now());
+                    return true;
                 }
-                .touch-device .opacity-0 {
-                    opacity: 1 !important;
+                return false;
+            } catch (_) {
+                return false;
+            } finally {
+                inFlight = false;
+            }
+        };
+
+        const softRefresh = async () => {
+            const updated = await tryFetchJsonUpdate();
+            if (!updated) {
+                setLastUpdated(Date.now());
+                const snapshot = readMetricsFromDOM();
+                updateHealthBars(snapshot.total, snapshot.deployed, snapshot.pending, snapshot.failed);
+            }
+        };
+
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', async () => {
+                refreshBtn.disabled = true;
+                try {
+                    await softRefresh();
+                } finally {
+                    window.setTimeout(() => { refreshBtn.disabled = false; }, 350);
                 }
-            `;
-            document.head.appendChild(touchStyle);
+            });
         }
 
-        // Add keyboard navigation
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Tab' || e.key === 'Enter' || e.key === ' ') {
-                const focusedElement = document.activeElement;
-                if (focusedElement) {
-                    focusedElement.classList.add('keyboard-focus');
+        const onVisibility = () => {
+            if (document.visibilityState === 'visible') {
+                if (!refreshTimer && refreshIntervalMs >= 8000) {
+                    refreshTimer = window.setInterval(() => {
+                        if (document.hasFocus()) softRefresh();
+                    }, refreshIntervalMs);
+                }
+            } else {
+                if (refreshTimer) {
+                    window.clearInterval(refreshTimer);
+                    refreshTimer = null;
                 }
             }
-        });
+        };
 
-        document.addEventListener('keyup', function(e) {
-            document.querySelectorAll('.keyboard-focus').forEach(el => {
-                el.classList.remove('keyboard-focus');
-            });
-        });
-    </script>
-</body>
+        onVisibility();
+        document.addEventListener('visibilitychange', onVisibility, { passive: true });
+
+        updateHealthBars(
+            readMetricsFromDOM().total,
+            readMetricsFromDOM().deployed,
+            readMetricsFromDOM().pending,
+            readMetricsFromDOM().failed
+        );
+
+        window.setInterval(updateLastUpdatedText, 5000);
+    })();
+</script>
 {% endblock %}

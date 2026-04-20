@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light dark">
     <meta name="description" content="{% block meta_description %}DevOps Dashboard - Manage your projects efficiently{% endblock %}">
     <meta name="keywords" content="{% block meta_keywords %}devops, dashboard, project management, deployment{% endblock %}">
     <title>{% block title %}DevOps Dashboard{% endblock %}</title>
@@ -11,11 +12,6 @@
     <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
     
     <!-- CSS Libraries -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="//unpkg.com/alpinejs" defer></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
-    <!-- Custom Tailwind Config -->
     <script>
         tailwind.config = {
             theme: {
@@ -38,10 +34,44 @@
             }
         }
     </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.14.8/dist/cdn.min.js" defer></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     
     <!-- Custom Styles -->
     <style>
         [x-cloak] { display: none !important; }
+
+        html, body { height: 100%; }
+        body { text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; }
+        img { max-width: 100%; height: auto; }
+
+        .skip-link {
+            position: absolute;
+            top: 12px;
+            left: -999px;
+            z-index: 60;
+            padding: 10px 14px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(148, 163, 184, 0.55);
+            box-shadow: 0 10px 26px rgba(15, 23, 42, 0.16);
+            color: #0f172a;
+        }
+        .skip-link:focus { left: 12px; outline: none; box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.25), 0 10px 26px rgba(15, 23, 42, 0.16); }
+
+        .app-bg {
+            background: #ffffff;
+            background-image: radial-gradient(circle at 1px 1px, rgba(0, 0, 0, 0.30) 1px, transparent 0);
+            background-size: 20px 20px;
+        }
+
+        @media (max-width: 640px) {
+            .app-bg {
+                background-image: radial-gradient(circle at 1px 1px, rgba(0, 0, 0, 0.22) 1px, transparent 0);
+                background-size: 18px 18px;
+            }
+        }
         
         .scrollbar-hide {
             -ms-overflow-style: none;
@@ -89,31 +119,89 @@
         }
         
         .btn-primary {
-            @apply bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 700;
+            color: #ffffff;
+            background: linear-gradient(90deg, #2563eb, #1d4ed8);
+            box-shadow: 0 8px 18px rgba(37, 99, 235, 0.22);
+            transition: transform 200ms ease, box-shadow 200ms ease, filter 200ms ease;
+            text-decoration: none;
         }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 26px rgba(37, 99, 235, 0.28); filter: brightness(1.05); }
+        .btn-primary:active { transform: translateY(0); }
         
         .btn-secondary {
-            @apply bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 700;
+            color: #ffffff;
+            background: linear-gradient(90deg, #4b5563, #374151);
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.20);
+            transition: transform 200ms ease, box-shadow 200ms ease, filter 200ms ease;
+            text-decoration: none;
         }
+        .btn-secondary:hover { transform: translateY(-2px); box-shadow: 0 12px 26px rgba(15, 23, 42, 0.26); filter: brightness(1.06); }
+        .btn-secondary:active { transform: translateY(0); }
         
         .btn-success {
-            @apply bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 700;
+            color: #ffffff;
+            background: linear-gradient(90deg, #16a34a, #15803d);
+            box-shadow: 0 8px 18px rgba(22, 163, 74, 0.20);
+            transition: transform 200ms ease, box-shadow 200ms ease, filter 200ms ease;
+            text-decoration: none;
         }
+        .btn-success:hover { transform: translateY(-2px); box-shadow: 0 12px 26px rgba(22, 163, 74, 0.26); filter: brightness(1.05); }
+        .btn-success:active { transform: translateY(0); }
         
         .btn-danger {
-            @apply bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 700;
+            color: #ffffff;
+            background: linear-gradient(90deg, #dc2626, #b91c1c);
+            box-shadow: 0 8px 18px rgba(220, 38, 38, 0.20);
+            transition: transform 200ms ease, box-shadow 200ms ease, filter 200ms ease;
+            text-decoration: none;
         }
+        .btn-danger:hover { transform: translateY(-2px); box-shadow: 0 12px 26px rgba(220, 38, 38, 0.26); filter: brightness(1.05); }
+        .btn-danger:active { transform: translateY(0); }
         
         .card {
-            @apply bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden;
+            background: #ffffff;
+            border-radius: 0.75rem;
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            box-shadow: 0 10px 26px rgba(15, 23, 42, 0.08);
+            overflow: hidden;
         }
         
         .card-header {
-            @apply bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b border-gray-200;
+            background: linear-gradient(90deg, #f8fafc, #f1f5f9);
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid rgba(226, 232, 240, 1);
         }
         
         .card-body {
-            @apply p-6;
+            padding: 1.5rem;
         }
         
         {% block extra_css %}{% endblock %}
@@ -121,21 +209,24 @@
     
     <!-- Pre-check for first visit to avoid flash -->
     <script>
-        // Check first visit before Alpine.js loads to prevent flash
         window.isFirstVisit = function() {
-            const sessionKey = 'devops_dashboard_visited';
-            return !sessionStorage.getItem(sessionKey);
+            try {
+                const sessionKey = 'devops_dashboard_visited';
+                return !sessionStorage.getItem(sessionKey);
+            } catch (_) {
+                return false;
+            }
         };
         
-        // Set initial loading state
         window.initialLoadingState = window.isFirstVisit();
-        console.log('Pre-check: First visit =', window.initialLoadingState);
     </script>
 </head>
-<body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen" 
+<body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen app-bg" 
       x-data="baseApp()" 
       x-init="init()"
-      style="background: #ffffff; background-image: radial-gradient(circle at 1px 1px, rgba(0, 0, 0, 0.35) 1px, transparent 0); background-size: 20px 20px;">
+>
+
+    <a class="skip-link" href="#main-content">Skip to content</a>
 
     <!-- Loading Spinner - Shows only on first visit -->
     <div x-show="loading" 
@@ -152,16 +243,6 @@
             <div class="mt-8 space-y-2">
                 {% include 'includes/loading.html' %}
             </div>
-            
-            <!-- Debug info (remove in production) -->
-            <div class="mt-4 text-xs text-white text-opacity-70" x-data="{ showDebug: false }">
-                <button @click="showDebug = !showDebug" class="underline">Debug Info</button>
-                <div x-show="showDebug" class="mt-2 text-left bg-black bg-opacity-30 p-2 rounded">
-                    <div>Session Storage: <span x-text="sessionStorage.getItem('devops_dashboard_visited') || 'null'"></span></div>
-                    <div>Loading State: <span x-text="loading"></span></div>
-                    <div>Timestamp: <span x-text="new Date().toLocaleTimeString()"></span></div>
-                </div>
-            </div>
         </div>
     </div>
 
@@ -176,7 +257,7 @@
         {% block navbar %}
         <!-- Navigation -->
         <nav class="bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-xl">
-            <div class="container mx-auto px-4">
+            <div class="container mx-auto px-3 sm:px-4 lg:px-6">
                 <div class="flex justify-between items-center py-4">
                     <h1 class="text-lg sm:text-xl font-bold flex items-center">
                         <a href="/"><i class="fas fa-server mr-2 text-blue-200"></i>DevOps Dashboard</a>
@@ -193,14 +274,23 @@
                         
                         <!-- Profile with Photo -->
                         <div x-data="{ profileOpen: false }" class="relative">
-                            <button @click="profileOpen = !profileOpen" 
+                            <button type="button"
+                                    @click="profileOpen = !profileOpen"
+                                    @keydown.escape.window="profileOpen = false"
+                                    aria-haspopup="menu"
+                                    :aria-expanded="profileOpen.toString()"
+                                    aria-controls="profile-menu"
                                     class="hover:bg-blue-500 transition-all duration-200 px-4 py-2 rounded-lg flex items-center space-x-2 focus:outline-none focus:ring-2 focus:ring-blue-300">
                                 <!-- Profile Photo -->
                                 <div class="w-8 h-8 rounded-full overflow-hidden border-2 border-white shadow-sm">
                                     {% if user.profile.photo %}
                                         <img src="{{ user.profile.photo.url }}" 
                                              alt="{{ user.get_full_name|default:user.username }}" 
-                                             class="w-full h-full object-cover">
+                                             class="w-full h-full object-cover"
+                                             width="32"
+                                             height="32"
+                                             loading="lazy"
+                                             decoding="async">
                                     {% else %}
                                         <div class="w-full h-full bg-blue-400 flex items-center justify-center text-white text-sm font-semibold">
                                             {{ user.get_full_name|default:user.username|first|upper }}
@@ -214,22 +304,25 @@
                             <!-- Dropdown Menu -->
                             <div x-show="profileOpen" 
                                  @click.away="profileOpen = false"
+                                 @keydown.escape.window="profileOpen = false"
                                  x-transition:enter="transition ease-out duration-200"
                                  x-transition:enter-start="opacity-0 scale-95"
                                  x-transition:enter-end="opacity-100 scale-100"
                                  x-transition:leave="transition ease-in duration-150"
                                  x-transition:leave-start="opacity-100 scale-100"
                                  x-transition:leave-end="opacity-0 scale-95"
+                                 id="profile-menu"
+                                 role="menu"
                                  class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50"
                                  x-cloak>
-                                <a href="{% url 'profile' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors duration-200">
+                                <a role="menuitem" href="{% url 'profile' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors duration-200">
                                     <i class="fas fa-user mr-2"></i>Profile
                                 </a>
-                                <a href="{% url 'edit_profile' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors duration-200">
+                                <a role="menuitem" href="{% url 'edit_profile' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors duration-200">
                                     <i class="fas fa-edit mr-2"></i>Edit Profile
                                 </a>
                                 <hr class="my-2">
-                                <a href="{% url 'logout' %}" class="block px-4 py-2 text-red-600 hover:bg-red-50 transition-colors duration-200">
+                                <a role="menuitem" href="{% url 'logout' %}" class="block px-4 py-2 text-red-600 hover:bg-red-50 transition-colors duration-200">
                                     <i class="fas fa-sign-out-alt mr-2"></i>Logout
                                 </a>
                             </div>
@@ -237,7 +330,12 @@
                     </div>
                     
                     <!-- Mobile Menu Button -->
-                    <button @click="mobileMenuOpen = !mobileMenuOpen" 
+                    <button type="button"
+                            @click="mobileMenuOpen = !mobileMenuOpen"
+                            @keydown.escape.window="mobileMenuOpen = false"
+                            aria-label="Toggle menu"
+                            :aria-expanded="mobileMenuOpen.toString()"
+                            aria-controls="mobile-menu"
                             class="md:hidden p-2 rounded-lg hover:bg-blue-500 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300">
                         <i class="fas fa-bars text-xl"></i>
                     </button>
@@ -251,21 +349,22 @@
                      x-transition:leave="transition ease-in duration-150"
                      x-transition:leave-start="opacity-100 translate-y-0"
                      x-transition:leave-end="opacity-0 -translate-y-2"
+                     id="mobile-menu"
                      class="md:hidden border-t border-blue-500 pt-4 pb-4 space-y-2"
                      x-cloak>
-                    <a href="{% url 'devops:dashboard' %}" class="mobile-nav-link">
+                    <a href="{% url 'devops:dashboard' %}" class="mobile-nav-link" @click="mobileMenuOpen = false">
                         <i class="fas fa-home mr-3"></i>Dashboard
                     </a>
-                    <a href="{% url 'devops:project_list' %}" class="mobile-nav-link">
+                    <a href="{% url 'devops:project_list' %}" class="mobile-nav-link" @click="mobileMenuOpen = false">
                         <i class="fas fa-list mr-3"></i>Projects
                     </a>
-                    <a href="{% url 'profile' %}" class="mobile-nav-link">
+                    <a href="{% url 'profile' %}" class="mobile-nav-link" @click="mobileMenuOpen = false">
                         <i class="fas fa-user mr-3"></i>Profile
                     </a>
-                    <a href="{% url 'edit_profile' %}" class="mobile-nav-link">
+                    <a href="{% url 'edit_profile' %}" class="mobile-nav-link" @click="mobileMenuOpen = false">
                         <i class="fas fa-edit mr-3"></i>Edit Profile
                     </a>
-                    <a href="{% url 'logout' %}" class="mobile-nav-link text-red-300 hover:text-red-100">
+                    <a href="{% url 'logout' %}" class="mobile-nav-link text-red-300 hover:text-red-100" @click="mobileMenuOpen = false">
                         <i class="fas fa-sign-out-alt mr-3"></i>Logout
                     </a>
                 </div>
@@ -276,7 +375,7 @@
         <!-- Breadcrumbs -->
         {% if breadcrumbs %}
         <div class="bg-white border-b border-gray-200">
-            <div class="container mx-auto px-4 py-3">
+            <div class="container mx-auto px-3 sm:px-4 lg:px-6 py-3">
                 <nav class="flex" aria-label="Breadcrumb">
                     <ol class="inline-flex items-center space-x-1 md:space-x-3">
                         {% for breadcrumb in breadcrumbs %}
@@ -301,7 +400,7 @@
 
         <!-- Messages -->
         {% if messages %}
-        <div class="container mx-auto px-4 py-4">
+        <div class="container mx-auto px-3 sm:px-4 lg:px-6 py-4">
             {% for message in messages %}
                 <div class="alert alert-{{ message.tags }} mb-4" role="alert">
                     <div class="flex items-center">
@@ -322,7 +421,7 @@
         {% endif %}
 
         <!-- Main Content -->
-        <main class="container mx-auto px-4 py-8">
+        <main id="main-content" tabindex="-1" class="container mx-auto px-3 sm:px-4 lg:px-6 py-6 sm:py-8 lg:py-10">
             {% block content %}{% endblock %}
         </main>
 
@@ -335,7 +434,7 @@
             </div>
 
             <!-- Main Footer Content -->
-            <div class="relative container mx-auto px-4 py-16">
+            <div class="relative container mx-auto px-3 sm:px-4 lg:px-6 py-12 sm:py-16">
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
                     <!-- Brand Section -->
                     <div class="lg:col-span-1">
@@ -479,7 +578,7 @@
 
             <!-- Bottom Bar -->
             <div class="relative border-t border-gray-800">
-                <div class="container mx-auto px-4 py-6">
+                <div class="container mx-auto px-3 sm:px-4 lg:px-6 py-6">
                     <div class="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
                         <div class="flex items-center space-x-6 text-sm text-gray-400">
                             <p>&copy; {% now "Y" %} DevOps Dashboard. All rights reserved.</p>
@@ -514,7 +613,8 @@
 
             <!-- Floating Action Button (Back to Top) -->
             <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})"
-                    class="fixed bottom-6 right-6 w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110 z-40 opacity-0 animate-fade-in"
+                    aria-label="Back to top"
+                    class="fixed bottom-5 right-5 sm:bottom-6 sm:right-6 w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110 z-40 opacity-0 animate-fade-in"
                     style="animation-delay: 2s;">
                 <i class="fas fa-arrow-up text-white"></i>
             </button>
@@ -542,7 +642,6 @@
     <script>
         function baseApp() {
             return {
-                // Initialize loading state based on pre-check
                 loading: window.initialLoadingState || false,
                 mobileMenuOpen: false,
                 showToast: false,
@@ -551,142 +650,32 @@
                 toastIcon: '',
                 
                 init() {
-                    console.log('BaseApp initializing...', {
-                        initialLoadingState: window.initialLoadingState,
-                        currentLoading: this.loading
-                    });
-                    
-                    // Check if this is the first visit in this session
                     this.checkFirstVisit();
                     
-                    // Close mobile menu when clicking outside
                     document.addEventListener('click', (e) => {
                         if (!e.target.closest('nav') && this.mobileMenuOpen) {
                             this.mobileMenuOpen = false;
                         }
                     });
-                    
-                    // Clean up localStorage when tab/window is closed
-                    this.setupCleanupHandlers();
-                    
-                    // Preload critical resources if loading
-                    if (this.loading) {
-                        this.preloadResources();
-                    }
-                    
-                    // Store reference for debugging
-                    window.baseAppInstance = this;
                 },
                 
                 checkFirstVisit() {
-                    const sessionKey = 'devops_dashboard_visited';
-                    const tabKey = 'devops_dashboard_tab_' + Date.now();
-                    
-                    console.log('Checking first visit...', {
-                        sessionKey,
-                        hasVisited: sessionStorage.getItem(sessionKey),
-                        currentLoading: this.loading
-                    });
-                    
-                    // Check if user has visited in this browser session
-                    const hasVisited = sessionStorage.getItem(sessionKey);
-                    
-                    if (!hasVisited) {
-                        console.log('First visit detected - showing loading spinner');
-                        
-                        // First visit - show loading spinner
-                        this.loading = true;
-                        
-                        // Mark as visited in sessionStorage (persists until browser/tab closed)
-                        sessionStorage.setItem(sessionKey, 'true');
-                        sessionStorage.setItem('current_tab_key', tabKey);
-                        
-                        // Also store in localStorage with timestamp for cleanup
-                        const visitData = {
-                            timestamp: Date.now(),
-                            tabKey: tabKey
-                        };
-                        localStorage.setItem('devops_visit_data', JSON.stringify(visitData));
-                        
-                        // Show loading for 10 seconds
-                        setTimeout(() => {
-                            console.log('Loading timeout completed - hiding spinner');
+                    try {
+                        const sessionKey = 'devops_dashboard_visited';
+                        const hasVisited = sessionStorage.getItem(sessionKey);
+
+                        if (!hasVisited) {
+                            this.loading = true;
+                            sessionStorage.setItem(sessionKey, 'true');
+                            setTimeout(() => {
+                                this.loading = false;
+                            }, 900);
+                        } else {
                             this.loading = false;
-                        }, 10000);
-                    } else {
-                        console.log('Not first visit - skipping loading spinner');
-                        // Not first visit - skip loading
+                        }
+                    } catch (_) {
                         this.loading = false;
                     }
-                },
-                
-                setupCleanupHandlers() {
-                    // Clean up when page is unloaded (tab closed, navigation, etc.)
-                    const cleanup = () => {
-                        console.log('Cleaning up storage...');
-                        // Remove localStorage data
-                        localStorage.removeItem('devops_visit_data');
-                        
-                        // Clear sessionStorage
-                        sessionStorage.removeItem('devops_dashboard_visited');
-                        sessionStorage.removeItem('current_tab_key');
-                    };
-                    
-                    // Handle various unload events
-                    window.addEventListener('beforeunload', cleanup);
-                    window.addEventListener('unload', cleanup);
-                    window.addEventListener('pagehide', cleanup);
-                    
-                    // Handle visibility change (when tab becomes hidden)
-                    document.addEventListener('visibilitychange', () => {
-                        if (document.visibilityState === 'hidden') {
-                            // Optional: Clean up when tab becomes hidden
-                            // Uncomment if you want to reset on tab switch
-                            // cleanup();
-                        }
-                    });
-                    
-                    // Periodic cleanup of old localStorage entries (in case cleanup failed)
-                    this.cleanupOldEntries();
-                },
-                
-                cleanupOldEntries() {
-                    try {
-                        const visitData = localStorage.getItem('devops_visit_data');
-                        if (visitData) {
-                            const data = JSON.parse(visitData);
-                            const now = Date.now();
-                            const oneHour = 60 * 60 * 1000; // 1 hour in milliseconds
-                            
-                            // If data is older than 1 hour, clean it up
-                            if (now - data.timestamp > oneHour) {
-                                console.log('Cleaning up old localStorage entries');
-                                localStorage.removeItem('devops_visit_data');
-                                sessionStorage.removeItem('devops_dashboard_visited');
-                                sessionStorage.removeItem('current_tab_key');
-                            }
-                        }
-                    } catch (error) {
-                        console.log('Error parsing visit data, cleaning up:', error);
-                        // If there's an error parsing, just clean up
-                        localStorage.removeItem('devops_visit_data');
-                        sessionStorage.removeItem('devops_dashboard_visited');
-                        sessionStorage.removeItem('current_tab_key');
-                    }
-                },
-                
-                preloadResources() {
-                    // Preload any critical resources while showing the spinner
-                    const links = document.querySelectorAll('link[rel="stylesheet"]');
-                    links.forEach(link => {
-                        if (!link.href.includes('font-awesome') && !link.href.includes('tailwind')) {
-                            const preloadLink = document.createElement('link');
-                            preloadLink.rel = 'preload';
-                            preloadLink.as = 'style';
-                            preloadLink.href = link.href;
-                            document.head.appendChild(preloadLink);
-                        }
-                    });
                 },
                 
                 showNotification(message, type = 'info') {
@@ -717,74 +706,73 @@
                 },
                 
                 setLoading(state) {
-                    console.log('Setting loading state to:', state);
                     this.loading = state;
                 },
                 
-                // Method to manually reset the first visit flag (for testing)
                 resetFirstVisit() {
-                    console.log('Resetting first visit flag');
-                    localStorage.removeItem('devops_visit_data');
-                    sessionStorage.removeItem('devops_dashboard_visited');
-                    sessionStorage.removeItem('current_tab_key');
+                    try {
+                        sessionStorage.removeItem('devops_dashboard_visited');
+                    } catch (_) {}
                     location.reload();
                 }
             }
         }
-        
-        // Global function to reset first visit (accessible from console for testing)
-        window.resetDevOpsFirstVisit = function() {
-            console.log('Global reset first visit called');
-            localStorage.removeItem('devops_visit_data');
-            sessionStorage.removeItem('devops_dashboard_visited');
-            sessionStorage.removeItem('current_tab_key');
-            location.reload();
-        };
-        
-        // Debug function to check current state
-        window.checkLoadingState = function() {
-            console.log('Current loading state:', {
-                sessionStorage: sessionStorage.getItem('devops_dashboard_visited'),
-                localStorage: localStorage.getItem('devops_visit_data'),
-                initialLoadingState: window.initialLoadingState,
-                baseAppLoading: window.baseAppInstance?.loading
-            });
-        };
     </script>
 
     {% block extra_js %}{% endblock %}
 
     <style>
         .nav-link {
-            @apply hover:bg-white hover:bg-opacity-20 px-4 py-2 rounded-lg transition-all duration-200 flex items-center;
+            display: inline-flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            transition: background-color 200ms ease, transform 200ms ease;
         }
+        .nav-link:hover { background-color: rgba(255, 255, 255, 0.20); }
         
         .nav-link.active {
-            @apply bg-white bg-opacity-20;
+            background-color: rgba(255, 255, 255, 0.20);
         }
         
         .mobile-nav-link {
-            @apply hover:bg-white hover:bg-opacity-20 px-4 py-3 rounded-lg transition-all duration-200 flex items-center;
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            transition: background-color 200ms ease, transform 200ms ease;
         }
+        .mobile-nav-link:hover { background-color: rgba(255, 255, 255, 0.20); }
         
         .alert {
-            @apply p-4 rounded-lg border-l-4;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            border-left: 4px solid transparent;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
         }
         
         .alert-success {
-            @apply bg-green-50 border-green-500 text-green-800;
+            background: #f0fdf4;
+            border-left-color: #22c55e;
+            color: #166534;
         }
         
         .alert-error {
-            @apply bg-red-50 border-red-500 text-red-800;
+            background: #fef2f2;
+            border-left-color: #ef4444;
+            color: #7f1d1d;
         }
         
         .alert-warning {
-            @apply bg-yellow-50 border-yellow-500 text-yellow-800;
+            background: #fffbeb;
+            border-left-color: #f59e0b;
+            color: #854d0e;
         }
         
         .alert-info {
-            @apply bg-blue-50 border-blue-500 text-blue-800;
+            background: #eff6ff;
+            border-left-color: #3b82f6;
+            color: #1e40af;
         }
     </style>
 </body>
