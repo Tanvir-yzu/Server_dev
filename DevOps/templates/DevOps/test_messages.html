@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Test Messages - DevOps Dashboard{% endblock %}
+
+{% block content %}
+<div id="devops-dashboard">
+  <div class="dd-inner">
+    <header class="dd-top" aria-label="Test messages header">
+      <div class="dd-hero">
+        <div class="dd-identity">
+          <div class="dd-mark" aria-hidden="true"><i class="fas fa-flask"></i></div>
+          <div class="min-w-0">
+            <div class="dd-pill" aria-live="polite"><span class="dd-live-dot" aria-hidden="true"></span><span>Live</span><span aria-hidden="true">•</span><span>Test Mode</span></div>
+          </div>
+        </div>
+        <h1 class="min-w-0">Message System Test</h1>
+        <p class="dd-subtitle">Trigger each message type and watch them auto-dismiss in 5 seconds.</p>
+      </div>
+      <div class="dd-controls">
+        <div class="dd-control-row">
+          <div class="dd-tip"><span class="dd-pill"><i class="fas fa-info-circle" aria-hidden="true"></i><span>Auto-dismiss active</span></span></div>
+          <button type="button" class="dd-icon-btn" data-theme-toggle aria-pressed="false" aria-label="Toggle dark mode"><i class="fas fa-moon" aria-hidden="true"></i></button>
+        </div>
+        <div class="dd-control-row">
+          <button class="dd-btn" data-msg="success"><i class="fas fa-check" aria-hidden="true"></i><span>Success</span></button>
+          <button class="dd-btn dd-btn-secondary" data-msg="error"><i class="fas fa-times" aria-hidden="true"></i><span>Error</span></button>
+          <button class="dd-btn" data-msg="warning"><i class="fas fa-exclamation" aria-hidden="true"></i><span>Warning</span></button>
+          <button class="dd-btn dd-btn-secondary" data-msg="info"><i class="fas fa-info" aria-hidden="true"></i><span>Info</span></button>
+        </div>
+      </div>
+    </header>
+
+    <section class="dd-card dd-collapsible" data-section="details" data-collapsed="false">
+      <div class="dd-card-head">
+        <h2 class="dd-section-title"><i class="fas fa-list" aria-hidden="true"></i>Test Details</h2>
+        <button type="button" class="dd-icon-btn" data-collapse-toggle aria-expanded="true" aria-controls="dd-details"><i class="fas fa-chevron-up" aria-hidden="true"></i></button>
+      </div>
+      <div class="dd-card-body" id="dd-details" data-collapsible-panel>
+        <ul class="list-disc pl-5 space-y-2 text-sm" style="color:var(--dd-muted)">
+          <li>Click any button to trigger a message.</li>
+          <li>Each message auto-dismisses after <strong>exactly 5 seconds</strong>.</li>
+          <li>Multiple messages queue up (max 3 visible at once).</li>
+          <li>Messages respect <code>prefers-reduced-motion</code> if set.</li>
+          <li>Check browser console for timing logs.</li>
+        </ul>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script>
+(function(){
+  const container=document.getElementById('toastContainer');
+  if(!container) return;
+  const buttons=document.querySelectorAll('[data-msg]');
+  const icons={success:'fa-check-circle',error:'fa-exclamation-circle',warning:'fa-exclamation-triangle',info:'fa-info-circle'};
+  const roleMap={error:'alert',warning:'status',success:'status',info:'status'};
+  const makeToast=(type,text)=>{
+    const t=document.createElement('div');
+    t.className='toast toast--'+type;
+    t.setAttribute('role',roleMap[type]||'status');
+    t.setAttribute('aria-live',(type==='error')?'assertive':'polite');
+    t.setAttribute('tabindex','0');
+    t.innerHTML='<div class="toast-inner"><i class="fas '+(icons[type]||icons.info)+' toast-ico"></i><div class="toast-text"></div></div>';
+    t.querySelector('.toast-text').textContent=text;
+    return t;
+  };
+  const timers=new WeakMap();
+  const cleanup=(el)=>{
+    const t=timers.get(el);
+    if(t){clearTimeout(t.fadeTimer);clearTimeout(t.rmTimer);timers.delete(el);}
+    if(el.parentNode) el.parentNode.removeChild(el);
+  };
+  const showToast=(type,text)=>{
+    const el=makeToast(type,text);
+    container.appendChild(el);
+    void el.offsetWidth;
+    el.classList.add('toast-show');
+    const start=performance.now();
+    const fadeAt=4700;
+    const removeAt=5000;
+    const fadeTimer=setTimeout(()=>{el.classList.add('toast-fade');},fadeAt);
+    const rmTimer=setTimeout(()=>{
+      const end=performance.now();
+      console.log(`[Toast] Removed after ${(end-start).toFixed(0)}ms`);
+      cleanup(el);
+    },removeAt);
+    timers.set(el,{fadeTimer,rmTimer});
+  };
+  buttons.forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const type=btn.getAttribute('data-msg');
+      const labels={success:'Success message triggered!',error:'Error message triggered!',warning:'Warning message triggered!',info:'Info message triggered!'};
+      showToast(type,labels[type]||'Unknown message');
+    });
+  });
+  window.addEventListener('beforeunload',()=>{
+    Array.from(container.children).forEach(el=>cleanup(el));
+  },{once:true});
+})();
+</script>
+{% endblock %}

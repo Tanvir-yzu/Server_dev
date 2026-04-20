@@ -398,26 +398,93 @@
         </div>
         {% endif %}
 
-        <!-- Messages -->
+        <div class="toast-container" id="toastContainer" aria-live="polite" aria-atomic="false"></div>
         {% if messages %}
-        <div class="container mx-auto px-3 sm:px-4 lg:px-6 py-4">
+        <div class="hidden" id="toastSource">
             {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} mb-4" role="alert">
-                    <div class="flex items-center">
-                        {% if message.tags == 'success' %}
-                            <i class="fas fa-check-circle mr-3"></i>
-                        {% elif message.tags == 'error' %}
-                            <i class="fas fa-exclamation-circle mr-3"></i>
-                        {% elif message.tags == 'warning' %}
-                            <i class="fas fa-exclamation-triangle mr-3"></i>
-                        {% else %}
-                            <i class="fas fa-info-circle mr-3"></i>
-                        {% endif %}
-                        {{ message }}
-                    </div>
-                </div>
+                <div class="toast-src" data-type="{{ message.tags|default:'info' }}" data-text="{{ message|escape }}"></div>
             {% endfor %}
         </div>
+        <noscript>
+            <div class="container mx-auto px-3 sm:px-4 lg:px-6 py-4">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} mb-4" role="alert">
+                        <div class="flex items-center">
+                            {% if message.tags == 'success' %}
+                                <i class="fas fa-check-circle mr-3"></i>
+                            {% elif message.tags == 'error' %}
+                                <i class="fas fa-exclamation-circle mr-3"></i>
+                            {% elif message.tags == 'warning' %}
+                                <i class="fas fa-exclamation-triangle mr-3"></i>
+                            {% else %}
+                                <i class="fas fa-info-circle mr-3"></i>
+                            {% endif %}
+                            {{ message }}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </noscript>
+        <script>
+        (function(){
+            const c=document.getElementById('toastContainer');
+            const s=document.getElementById('toastSource');
+            if(!c||!s) return;
+            const items=Array.from(s.querySelectorAll('.toast-src')).map(el=>({type:el.getAttribute('data-type')||'info',text:el.getAttribute('data-text')||''}));
+            const max=3;
+            const q=[];
+            let active=0;
+            const icons={success:'fa-check-circle',error:'fa-exclamation-circle',warning:'fa-exclamation-triangle',info:'fa-info-circle'};
+            const roleMap={error:'alert',warning:'status',success:'status',info:'status'};
+            const make=(m)=>{
+                const t=document.createElement('div');
+                t.className='toast toast--'+(m.type||'info');
+                t.setAttribute('role', roleMap[m.type]||'status');
+                t.setAttribute('aria-live', (m.type==='error')?'assertive':'polite');
+                t.setAttribute('tabindex','0');
+                t.innerHTML='<div class="toast-inner"><i class="fas '+(icons[m.type]||icons.info)+' toast-ico"></i><div class="toast-text"></div></div>';
+                t.querySelector('.toast-text').textContent=m.text;
+                return t;
+            };
+            const timers=new WeakMap();
+            const showNext=()=>{
+                if(active>=max) return;
+                const m=q.shift();
+                if(!m) return;
+                const el=make(m);
+                c.appendChild(el);
+                void el.offsetWidth;
+                el.classList.add('toast-show');
+                active++;
+                const fadeAt=4700;
+                const removeAt=5000;
+                const fadeTimer=setTimeout(()=>{el.classList.add('toast-fade');},fadeAt);
+                const rmTimer=setTimeout(()=>{cleanup(el);},removeAt);
+                timers.set(el,{fadeTimer,rmTimer});
+                el.addEventListener('transitionend', onTransitionEnd);
+            };
+            const onTransitionEnd=(e)=>{
+                if(e.propertyName!=='transform' && e.propertyName!=='opacity') return;
+            };
+            const cleanup=(el)=>{
+                el.removeEventListener('transitionend', onTransitionEnd);
+                const t=timers.get(el);
+                if(t){clearTimeout(t.fadeTimer);clearTimeout(t.rmTimer);timers.delete(el);} 
+                if(el.parentNode) el.parentNode.removeChild(el);
+                active=Math.max(0,active-1);
+                showNext();
+            };
+            items.forEach(m=>q.push(m));
+            const pump=()=>{while(active<max && q.length) showNext();};
+            pump();
+            window.addEventListener('beforeunload', ()=>{
+                Array.from(c.children).forEach(el=>{
+                    const t=timers.get(el);
+                    if(t){clearTimeout(t.fadeTimer);clearTimeout(t.rmTimer);} 
+                });
+            },{once:true});
+        })();
+        </script>
         {% endif %}
 
         <!-- Main Content -->
@@ -773,6 +840,113 @@
             background: #eff6ff;
             border-left-color: #3b82f6;
             color: #1e40af;
+        }
+
+        /* Auto-dismiss toast system */
+        .toast-container {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 60;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            max-width: 24rem;
+            width: 100%;
+            pointer-events: none;
+        }
+
+        @media (max-width: 640px) {
+            .toast-container {
+                top: 0.75rem;
+                right: 0.75rem;
+                left: 0.75rem;
+                max-width: none;
+            }
+        }
+
+        .toast {
+            pointer-events: auto;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 0.875rem 1rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.16);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            background: rgba(255, 255, 255, 0.92);
+            color: #0f172a;
+            font-size: 0.875rem;
+            line-height: 1.35;
+            transform: translateX(110%);
+            opacity: 0;
+            transition: transform 300ms ease, opacity 300ms ease;
+            will-change: transform, opacity;
+        }
+
+        .toast-show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .toast-fade {
+            opacity: 0;
+            transform: translateX(110%);
+        }
+
+        .toast--success {
+            border-color: rgba(34, 197, 94, 0.4);
+            background: rgba(240, 253, 244, 0.94);
+        }
+
+        .toast--error {
+            border-color: rgba(239, 68, 68, 0.4);
+            background: rgba(254, 242, 242, 0.94);
+        }
+
+        .toast--warning {
+            border-color: rgba(245, 158, 11, 0.4);
+            background: rgba(255, 251, 235, 0.94);
+        }
+
+        .toast--info {
+            border-color: rgba(59, 130, 246, 0.4);
+            background: rgba(239, 246, 255, 0.94);
+        }
+
+        .toast-inner {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+            width: 100%;
+        }
+
+        .toast-ico {
+            flex-shrink: 0;
+            margin-top: 0.125rem;
+            font-size: 1rem;
+            line-height: 1;
+        }
+
+        .toast--success .toast-ico { color: #16a34a; }
+        .toast--error .toast-ico { color: #dc2626; }
+        .toast--warning .toast-ico { color: #d97706; }
+        .toast--info .toast-ico { color: #2563eb; }
+
+        .toast-text {
+            flex: 1 1 0%;
+            min-width: 0;
+            word-break: break-word;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .toast,
+            .toast-show,
+            .toast-fade {
+                transition: none;
+            }
         }
     </style>
 </body>
