@@ -45,13 +45,12 @@ class CustomAuthenticationForm(AuthenticationForm):
 # ✅ Profile Edit Form
 # -------------------------------
 class ProfileEditForm(forms.ModelForm):
-    # User fields
-    first_name = forms.CharField(
-        label="First Name", 
-        max_length=30, 
-        required=False,
+    full_name = forms.CharField(
+        label="Full Name", 
+        max_length=255, 
+        required=True,
         widget=forms.TextInput(attrs={
-            'placeholder': 'Enter your first name',
+            'placeholder': 'Enter your full name',
             'class': 'w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-indigo-400'
         })
     )
@@ -84,16 +83,15 @@ class ProfileEditForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
-        user = kwargs.pop('user', None)
+        self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
-        if user:
-            self.fields['first_name'].initial = user.first_name
-            self.fields['email'].initial = user.email
+        if self.user:
+            self.fields['full_name'].initial = self.user.full_name
+            self.fields['email'].initial = self.user.email
 
     def clean_email(self):
         email = self.cleaned_data.get('email')
-        user = getattr(self, 'user', None)
-        if user and CustomUser.objects.filter(email=email).exclude(pk=user.pk).exists():
+        if self.user and CustomUser.objects.filter(email=email).exclude(pk=self.user.pk).exists():
             raise forms.ValidationError("This email is already in use.")
         return email
 
@@ -102,3 +100,15 @@ class ProfileEditForm(forms.ModelForm):
         if github_link and not github_link.startswith('https://github.com/'):
             raise forms.ValidationError("Please enter a valid GitHub URL (https://github.com/username)")
         return github_link
+
+    def clean_photo(self):
+        photo = self.cleaned_data.get('photo')
+        if photo:
+            if photo.size > 5 * 1024 * 1024:
+                raise forms.ValidationError("Photo size must be less than 5MB")
+            
+            from django.core.files.uploadedfile import UploadedFile
+            if isinstance(photo, UploadedFile):
+                if not photo.content_type.startswith('image/'):
+                    raise forms.ValidationError("Please upload a valid image file")
+        return photo

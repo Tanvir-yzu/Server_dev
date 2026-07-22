@@ -303,19 +303,36 @@ def accept_invitation(request, token):
         messages.error(request, 'This invitation has expired.')
         return redirect('devops:project_list')
     
+    # Check if user has permission to accept this invitation
+    has_permission = False
+    if invitation.invitee == request.user:
+        has_permission = True
+    elif invitation.email == request.user.email:
+        has_permission = True
+    
+    if not has_permission:
+        logger.warning(f"Permission denied - User {request.user.email} cannot accept invitation {invitation.id} meant for {invitation.recipient_display}")
+        messages.error(request, 'You do not have permission to accept this invitation.')
+        return redirect('devops:project_list')
+    
     try:
         # Accept the invitation
         invitation.accept(user=request.user)
         
-        # Create collaborator record
-        collaborator = ProjectCollaborator.objects.create(
+        # Create collaborator record if not already exists
+        collaborator, created = ProjectCollaborator.objects.get_or_create(
             project=invitation.project,
             user=request.user,
-            role='viewer',  # Default role
-            added_by=invitation.inviter
+            defaults={
+                'role': 'viewer',
+                'added_by': invitation.inviter
+            }
         )
         
-        logger.info(f"Invitation accepted successfully - ID: {invitation.id} - User: {request.user.email} - Project: {invitation.project.project_name} - Collaborator ID: {collaborator.id}")
+        if created:
+            logger.info(f"Invitation accepted successfully - ID: {invitation.id} - User: {request.user.email} - Project: {invitation.project.project_name} - Collaborator ID: {collaborator.id}")
+        else:
+            logger.info(f"Invitation accepted but user already a collaborator - ID: {invitation.id} - User: {request.user.email} - Project: {invitation.project.project_name}")
         
         messages.success(
             request, 
@@ -343,6 +360,18 @@ def decline_invitation(request, token):
     if invitation.status != 'pending':
         logger.warning(f"Cannot decline non-pending invitation - ID: {invitation.id} - Status: {invitation.status} - User: {request.user.email}")
         messages.error(request, 'This invitation is no longer valid.')
+        return redirect('devops:project_list')
+    
+    # Check if user has permission to decline this invitation
+    has_permission = False
+    if invitation.invitee == request.user:
+        has_permission = True
+    elif invitation.email == request.user.email:
+        has_permission = True
+    
+    if not has_permission:
+        logger.warning(f"Permission denied - User {request.user.email} cannot decline invitation {invitation.id} meant for {invitation.recipient_display}")
+        messages.error(request, 'You do not have permission to decline this invitation.')
         return redirect('devops:project_list')
     
     invitation.decline()
@@ -620,7 +649,7 @@ def resend_invitation_ajax(request, invitation_id):
             )
             
             # Render email template
-            html_message = render_to_string('collaboration/emails/invitation_reminder.html', {
+            html_message = render_to_string('collaboration/emails/invitation.html', {
                 'invitation': invitation,
                 'invitation_url': invitation_url,
                 'project': invitation.project,
@@ -712,9 +741,19 @@ def update_collaborator_role_ajax(request, collaborator_id):
             logger.warning(f"Permission denied for user {request.user.email} to update collaborator {collaborator_id}")
             return JsonResponse({'success': False, 'error': 'Permission denied'}, status=403)
         
-        # Get new role from request
-        new_role = request.POST.get('role')
-        if not new_role or new_role not in ['viewer', 'editor', 'admin']:
+        # Get new role from request - support both JSON and form-encoded
+        import json
+        new_role = None
+        if request.content_type == 'application/json':
+            try:
+                data = json.loads(request.body)
+                new_role = data.get('role')
+            except json.JSONDecodeError:
+                return JsonResponse({'success': False, 'error': 'Invalid JSON'}, status=400)
+        else:
+            new_role = request.POST.get('role')
+        
+        if not new_role or new_role not in ['viewer', 'contributor', 'admin']:
             return JsonResponse({'success': False, 'error': 'Invalid role'}, status=400)
         
         old_role = collaborator.role
@@ -760,11 +799,10 @@ def search_users_ajax(request):
                     ProjectCollaborator.objects.filter(project=project, user=request.user, role='admin').exists()):
                 return JsonResponse({'success': False, 'error': 'Permission denied'}, status=403)
         
-        # Search users by email or name
+        # Search users by email or full_name
         users = User.objects.filter(
             Q(email__icontains=query) | 
-            Q(first_name__icontains=query) | 
-            Q(last_name__icontains=query)
+            Q(full_name__icontains=query)
         ).exclude(id=request.user.id)[:10]  # Limit to 10 results
         
         # Exclude users who are already collaborators or have pending invitations

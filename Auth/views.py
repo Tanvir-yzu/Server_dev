@@ -71,17 +71,14 @@ class RegisterView(CreateView):
         logger.info("Processing valid registration form")
         
         try:
-            # Save the user
             response = super().form_valid(form)
-            user = form.save()  # user is saved with email as username, full_name set
+            user = self.object
             
             logger.info(f"New user created: {user.email} (ID: {user.id})")
 
-            # Create the profile
             profile = Profile.objects.create(user=user)
             logger.debug(f"Profile created for user {user.email} (Profile ID: {profile.id})")
 
-            # Auto-login the user
             login(self.request, user, backend='django.contrib.auth.backends.ModelBackend')
             logger.info(f"User {user.email} automatically logged in after registration")
             
@@ -239,23 +236,27 @@ class EditProfileView(LoginRequiredMixin, UpdateView):
         logger.info(f"Processing profile update for user: {user.email}")
         
         try:
-            # Update user fields from the form
             new_full_name = form.cleaned_data.get('full_name', user.full_name)
             new_email = form.cleaned_data.get('email', user.email)
             
-            # Log changes
             if old_email != new_email:
                 logger.info(f"Email change for user {user.id}: {old_email} -> {new_email}")
+                
+                existing_user = CustomUser.objects.filter(email=new_email).exclude(pk=user.pk).first()
+                if existing_user:
+                    form.add_error('email', "This email is already in use.")
+                    return self.form_invalid(form)
+                
+                user.email = new_email
+            
             if old_full_name != new_full_name:
                 logger.info(f"Full name change for user {user.email}: {old_full_name} -> {new_full_name}")
+                user.full_name = new_full_name
             
-            user.full_name = new_full_name
-            user.email = new_email
             user.save()
             
             logger.debug(f"User model updated for: {user.email}")
             
-            # Save the profile
             response = super().form_valid(form)
             
             logger.info(f"Profile successfully updated for user: {user.email}")

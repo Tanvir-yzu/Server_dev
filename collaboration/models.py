@@ -15,6 +15,7 @@ class ProjectInvitation(models.Model):
         ('pending', 'Pending'),
         ('accepted', 'Accepted'),
         ('declined', 'Declined'),
+        ('cancelled', 'Cancelled'),
         ('expired', 'Expired'),
     )
 
@@ -32,10 +33,17 @@ class ProjectInvitation(models.Model):
         ordering = ['-created_at']
         verbose_name = 'Project Invitation'
         verbose_name_plural = 'Project Invitations'
-        # Ensure one invitation per project per user/email
-        unique_together = [
-            ['project', 'invitee'],
-            ['project', 'email'],
+        constraints = [
+            models.UniqueConstraint(
+                fields=['project', 'invitee'],
+                name='unique_project_invitee',
+                condition=models.Q(invitee__isnull=False)
+            ),
+            models.UniqueConstraint(
+                fields=['project', 'email'],
+                name='unique_project_email',
+                condition=models.Q(email__isnull=False)
+            ),
         ]
 
     def __str__(self):
@@ -99,8 +107,9 @@ class ProjectInvitation(models.Model):
         self.status = 'accepted'
         self.accepted_at = timezone.now()
         
-        if user and not self.invitee:
+        if user:
             self.invitee = user
+            self.email = None
         
         self.save()
 

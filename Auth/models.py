@@ -38,20 +38,27 @@ class BaseModel(models.Model):
         abstract = True
 
 class CustomUser(AbstractUser):
-    username = models.CharField(max_length=255, unique=True, blank=True, null=True)  # Optional username
+    username = models.CharField(max_length=255, unique=True, blank=True, null=True)
     email = models.EmailField(unique=True)
     full_name = models.CharField(max_length=255)
 
-    USERNAME_FIELD = 'email'      # Login with email
-    REQUIRED_FIELDS = ['full_name']  # Only full_name is required now
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['full_name']
 
-    objects = CustomUserManager()  # Use our custom manager
+    objects = CustomUserManager()
 
     def __str__(self):
         return self.email
 
+    def get_full_name(self):
+        return self.full_name
+
+    def get_short_name(self):
+        if self.full_name:
+            return self.full_name.split()[0]
+        return self.email.split('@')[0]
+
     def save(self, *args, **kwargs):
-        # Auto-generate username from email if not provided
         if not self.username:
             self.username = self.email.split('@')[0]
         super().save(*args, **kwargs)
@@ -62,6 +69,7 @@ class Profile(BaseModel):
     photo = models.ImageField(upload_to='profile_photos/', blank=True, null=True)
     bio = models.TextField(blank=True, null=True)
     github_link = models.URLField(blank=True, null=True)
+    phone_number = models.CharField(max_length=20, blank=True, null=True)
 
     def __str__(self):
         return f"{self.user.full_name}'s Profile"
