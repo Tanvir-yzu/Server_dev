@@ -216,6 +216,9 @@
                     <a href="{% url 'devops:project_list' %}" class="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 text-center shadow-lg hover:shadow-xl hover:shadow-blue-500/30 transform hover:-translate-y-1 flex items-center justify-center">
                         <i class="fas fa-arrow-left mr-2"></i>Back to List
                     </a>
+                    <a href="{% url 'devops:download_readme' project.pk %}" class="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 text-center shadow-lg hover:shadow-xl hover:shadow-green-500/30 transform hover:-translate-y-1 flex items-center justify-center">
+                        <i class="fas fa-download mr-2"></i>Download README
+                    </a>
                 </div>
             </div>
         </div>

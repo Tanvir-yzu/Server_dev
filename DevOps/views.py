@@ -9,7 +9,7 @@ from django.urls import reverse_lazy
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Q
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.core.exceptions import PermissionDenied, ValidationError
 from .models import Project
 from .forms import ProjectCreateForm, ProjectEditForm
@@ -499,6 +499,207 @@ def debug_project_access(request, project_id):
         }
     
     return JsonResponse(debug_info, json_dumps_params={'indent': 2})
+
+@login_required
+@log_user_action("DOWNLOAD_README")
+def download_readme(request, pk):
+    """Generate and download a README file for a project"""
+    user = request.user
+    
+    try:
+        logger.debug(f"Download README request received for project pk={pk}, user={user.email}")
+        
+        project = get_object_or_404(Project, id=pk)
+        logger.debug(f"Project found: {project.project_name}")
+        
+        has_access = (project.owner == user) or project.collaborators.filter(user=user).exists()
+        if not has_access:
+            logger.warning(f"Access denied: User {user.email} attempted to download README for project {project.project_name}")
+            raise PermissionDenied("You don't have permission to download this README")
+        
+        logger.info(f"User {user.email} downloading README for project: {project.project_name} (ID: {project.id})")
+        
+        readme_content = f"""# {project.project_name}
+
+A Django-based backend server application.
+
+## 📖 Overview
+
+{project.project_name} is a backend application built using the Django framework.
+
+## ✨ Features
+
+* **Django Framework:** The application utilizes the Django framework for backend logic and structure.
+* **Project Management:** Create and manage projects with full DevOps support.
+* **Authentication:** Built-in authentication system for secure user access.
+
+## 🛠️ Tech Stack
+
+**Backend:**
+* Django
+* Python
+
+## 🚀 Quick Start
+
+### Prerequisites
+- Python 3.x
+- A virtual environment is strongly recommended for development.
+
+### Installation
+
+1. **Clone the repository:**
+   ```bash
+   git clone git@github.com:{project.github_username}/{project.project_name}.git
+   cd {project.project_name}
+   ```
+
+2. **Create a virtual environment (recommended):**
+   ```bash
+   python3 -m venv venv
+   source venv/bin/activate
+   ```
+
+3. **Install dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. **Configure database:**
+   ```bash
+   # PostgreSQL configuration
+   DB_CONFIG = {{
+       'ENGINE': 'django.db.backends.postgresql',
+       'HOST': '127.0.0.1',
+       'PORT': 5432,
+       'NAME': '{project.database_name}',
+       'USER': 'postgres',
+       'PASSWORD': '<db_password>'
+   }}
+   ```
+
+5. **Run Migrations:**
+   ```bash
+   python manage.py migrate
+   ```
+
+6. **Start development server:**
+   ```bash
+   python manage.py runserver 0.0.0.0:8000
+   ```
+
+7. **Open your browser:** Visit `http://{project.domain_name}/`
+
+## 🔧 SSH Key Management
+
+```bash
+# Generate SSH key for {project.project_name}
+ssh-keygen -t rsa -b 4096 -f ~/.ssh/{project.project_name}
+
+# Start SSH Agent
+eval "$(ssh-agent -s)"
+
+# Add SSH Key to Agent
+ssh-add ~/.ssh/{project.project_name}
+
+# Configure SSH Host
+cat >> ~/.ssh/config <<EOF
+Host {project.project_name}.github.com
+    HostName github.com
+    User git
+    IdentityFile ~/.ssh/{project.project_name}
+EOF
+
+# Clone Repository
+cd /opt
+git clone --branch main --single-branch git@{project.project_name}.github.com:{project.github_username}/{project.project_name}.git
+```
+
+## 🗄️ Database Setup
+
+```bash
+# Create PostgreSQL database
+sudo -u postgres psql -c "CREATE DATABASE {project.database_name};"
+
+# Install psycopg2
+pip install psycopg2-binary==2.9.10
+
+# Run migrations
+cd /opt/{project.project_name}/
+source venv/bin/activate
+python manage.py makemigrations
+python manage.py migrate
+python manage.py createsuperuser
+```
+
+## 🚀 Production Deployment
+
+```bash
+# Setup uWSGI
+mkdir -p uwsgi
+uwsgi --ini uwsgi/uwsgi.ini
+
+# Setup systemd service
+sudo cp examples/service.example /etc/systemd/system/{project.project_name}.service
+sudo systemctl daemon-reload
+sudo systemctl start {project.project_name}.service
+sudo systemctl enable {project.project_name}.service
+
+# Configure Nginx
+sudo cp examples/nginx.example /etc/nginx/conf.d/{project.domain_name}.conf
+sudo nginx -t
+sudo systemctl restart nginx
+```
+
+## 🔄 Restart Server Commands
+
+```bash
+cd /opt/{project.project_name}/
+source venv/bin/activate
+git pull
+sudo systemctl restart {project.project_name}.service
+```
+
+## 📦 Project Requirements
+
+```bash
+Django==4.2.7
+psycopg2-binary==2.9.10
+uwsgi
+```
+
+## 📄 License
+
+MIT License
+"""
+        
+        response = HttpResponse(readme_content, content_type='text/markdown; charset=utf-8')
+        response['Content-Disposition'] = f'attachment; filename="{project.project_name}_README.md"'
+        response['Content-Length'] = len(readme_content)
+        
+        logger.info(f"README downloaded successfully for project {project.project_name} by user {user.email}, content length: {len(readme_content)}")
+        
+        return response
+        
+    except Project.DoesNotExist:
+        logger.error(f"Project {pk} not found for user {user.email}")
+        messages.error(request, f'Project with ID {pk} not found.')
+        return redirect('devops:project_list')
+        
+    except PermissionDenied:
+        logger.warning(f"Permission denied for user {user.email} to download README for project {pk}")
+        messages.error(request, 'You do not have permission to download this README.')
+        return redirect('devops:project_list')
+        
+    except AttributeError as e:
+        logger.error(f"Attribute error in download_readme for project {pk}: {str(e)}")
+        messages.error(request, f'Error: Missing project data. Please try again later.')
+        return redirect('devops:project_list')
+        
+    except Exception as e:
+        logger.error(f"Unexpected error downloading README for project {pk} by user {user.email}: {str(e)}", exc_info=True)
+        messages.error(request, f'Error downloading README: {str(e)[:100]}')
+        return redirect('devops:project_list')
+
 
 @login_required
 @log_user_action("DEBUG_USER_PROJECTS")
