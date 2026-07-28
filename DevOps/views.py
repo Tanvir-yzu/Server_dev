@@ -244,10 +244,21 @@ class ProjectCreateView(LoginRequiredMixin, CreateView):
             
             return result
             
+        except ValidationError as e:
+            logger.warning(f"Validation error creating project {project_name} for user {user.email}: {str(e)}")
+            for field, errors in e.message_dict.items():
+                if field == '__all__':
+                    form.add_error(None, errors)
+                else:
+                    for error in errors:
+                        form.add_error(field, error)
+            messages.error(self.request, 'A project with this name already exists for your account. Please use a different name.')
+            return self.form_invalid(form)
+            
         except Exception as e:
             logger.error(f"Failed to create project {project_name} for user {user.email}: {str(e)}")
             messages.error(self.request, 'Failed to create project. Please try again.')
-            raise
+            return self.form_invalid(form)
 
     def form_invalid(self, form):
         user = self.request.user
@@ -330,10 +341,21 @@ class ProjectUpdateView(LoginRequiredMixin, UpdateView):
             
             return result
             
+        except ValidationError as e:
+            logger.warning(f"Validation error updating project {project.project_name} for user {user.email}: {str(e)}")
+            for field, errors in e.message_dict.items():
+                if field == '__all__':
+                    form.add_error(None, errors)
+                else:
+                    for error in errors:
+                        form.add_error(field, error)
+            messages.error(self.request, 'A project with this name already exists for your account. Please use a different name.')
+            return self.form_invalid(form)
+            
         except Exception as e:
             logger.error(f"Failed to update project {project.project_name} for user {user.email}: {str(e)}")
             messages.error(self.request, 'Failed to update project. Please try again.')
-            raise
+            return self.form_invalid(form)
 
     def form_invalid(self, form):
         user = self.request.user
